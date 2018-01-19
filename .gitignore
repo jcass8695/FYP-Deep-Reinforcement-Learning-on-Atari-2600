@@ -2,3 +2,6 @@ venv
 .vscode
 training_data.npy
 tensorboard
+report.aux
+report.dvi
+report.log
