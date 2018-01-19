@@ -1,0 +1,167 @@
+\documentclass[a4paper,oneside,12pt]{book}
+%----------------------------------------------------------------------------------------
+%	WELCOME!
+%   It's probably worth having a read through this file to set up the broad parameters.
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	COVER PAGE
+%   The cover page is laid out in title/title.tex. You can choose a colour
+%   or black and white logo
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	THESIS INFORMATION
+%   Put title, author name, degree, type of work, school, department in here
+%   It will be used for the title page and for the embedded PDF information
+%----------------------------------------------------------------------------------------
+
+\newcommand{\thesistitle}{Utilizing Reinforcement Learning and Deep Neural Networks to teach Atari VideO Games to Play Themselves} % Your thesis title, this is used in the title and abstract
+\newcommand{\degree}{BAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
+\newcommand{\typeofthesis}{Final Year Project} % dissertation, Final Year Project, report, etc.
+\newcommand{\authorname}{Jack Cassidy} % Your name, this is used in the title page and PDF stuff
+%% Comment out the next line if you don't want your ID to appear
+\newcommand{\authorid}{14320816} % Your ID
+\newcommand{\keywords}{machine learning, reinforcement learning} % Keywords for your thesis
+\newcommand{\school}{\href{http://www.scss.tcd.ie}{School of Computer Science and Statistics}} % Your school's name and URL, this is used in the title page
+
+%% Comment out the next line if you don't want a department to appear
+%\newcommand{\department}{\href{http://researchgroup.university.com}{Department Name}} % Your research group's name and URL, this is used in the title page
+
+\AtBeginDocument{
+\hypersetup{pdftitle=\thesistitle} % Set the PDF's title to your title
+\hypersetup{pdfauthor=\authorname} % Set the PDF's author to your name
+\hypersetup{pdfkeywords=\keywords} % Set the PDF's keywords to your keywords
+\hypersetup{pdfsubject=\degree} % Set the PDF's keywords to your keywords
+}
+
+%% Language and font encodings
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+%% Bibliographical stuff
+\usepackage[round,sort,comma,numbers]{natbib}
+
+%% Document size
+% include showframe as an option if you want to see the boxes
+\usepackage[a4paper,top=2.54cm,bottom=2.54cm,left=2.54cm,right=2.54cm,headheight=16pt]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+\usepackage[pdftex]{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+\usepackage{caption} % if no caption, no colon
+\usepackage{sfmath} %use sans-serif in the maths sections too
+\usepackage[parfill]{parskip}    % Begin paragraphs with an empty line rather than an indent
+\usepackage{setspace} % to permit one-and-a-half or double spacing
+\usepackage{enumerate} % fancy enumerations like (i) (ii) or (a) (b) and suchlike
+\usepackage{booktabs} % To thicken table lines
+\usepackage{fancyhdr}
+
+\pagestyle{plain} % Embrace simplicity!
+
+%% The Mechanical engineers require your name and ID on the top of every page.
+%% Uncomment the following block if you want your name and ID at the top of
+%% (almost) every page.
+
+%\pagestyle{fancy}
+%\fancyhf{} % sets both header and footer to nothing
+%\renewcommand{\headrulewidth}{0pt}
+%\cfoot{\thepage}
+%\ifdefined\authorid
+%\chead{\it \authorname\ (\authorid)}
+%\else
+%\chead{\it \authorname}
+%\fi
+%% End of block
+
+%% It is not a requirement of the university that the font should be sans-serif, but
+%% the Mechanical engineers require it. Comment out the following line to disable it
+\renewcommand{\familydefault}{\sfdefault} %use the sans-serif font as default
+
+%% If you're not using sans-serif, consider using Palatino instead of the LaTeX standard
+%\usepackage{mathpazo} % Use the Palatino font by default if you prefer it to Computer Modern
+
+\renewcommand{\theequation}{\arabic{equation}} %% use continuous equation numbers
+
+%% Format Chapter headings appropriately
+\usepackage{titlesec}
+\titleformat{\chapter}[hang] 
+{\normalfont\huge\bfseries}{\thechapter}{1cm}{} 
+
+\title{\thesistitle}
+\author{\authorname}
+
+\frontmatter
+\begin{document}
+\input{title/title.tex}
+\pagenumbering{roman}
+\section*{\Huge{Declaration}}
+\vspace{1cm}
+I hereby declare that this project is entirely my own work and that it has not been submitted as an exercise for a degree at this or any other university.
+
+\vspace{1cm}
+I have read and I understand the plagiarism provisions in the General Regulations of the University Calendar for the current year, found at \url{http://www.tcd.ie/calendar}.
+\vspace{1cm}
+
+I have also completed the Online Tutorial on avoiding plagiarism `Ready Steady Write', located at
+\url{http://tcd-ie.libguides.com/plagiarism/ready-steady-write}.
+\vspace{3cm}
+
+Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
+
+\chapter*{Abstract}
+A short summary of the problem investigated, the approach taken and the key findings. This should be around 400 words, or less.
+
+This should be on a separate page.
+
+\newpage
+\onehalfspacing\raggedright %\raggedright turns off justification and hypenation
+
+\section*{\Huge{Acknowledgements}}
+Thanks Mum!
+
+You should acknowledge any help that you have received (for example from technical staff), or input provided by, for example, a company.
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+\section*{\Huge{Nomenclature}}
+\begin{tabular}{lp{9cm}l}
+A&Area of the wing&$m^{2}$\\
+B\\
+C& Roman letters first, with capitals\ldots\\
+a&then lower case.\\
+b\\
+c\\
+$\Gamma$&Followed by Greek capitals\ldots\\
+$\alpha$&then lower case greek symbols.\\
+$\beta$\\
+$\epsilon$\\
+TLA&Finally, three letter acronyms and other abbreviations arranged alphabetically\\
+\end{tabular}
+\vspace{2cm}
+
+If a parameter has a typical unit that is used throughout your report, then it should be included here on the right hand side.
+
+If you have a very mathematical report, then you may wish to divide the nomenclature list into functions and variables, and then sub- and super-scripts.
+
+Note that Roman mathematical symbols are typically in a serif font in italics.
+
+\mainmatter
+\input{introduction/introduction.tex}
+\input{background/background.tex}
+\input{project/project.tex}
+\input{evaluation/evaluation.tex}
+\input{conclusion/conclusion.tex}
+\bibliographystyle{unsrtnat}
+\bibliography{bibs/sample}
+\appendix
+\renewcommand{\thechapter}{A\arabic{chapter}}
+\input{appendix/appendix.tex}
+
+
+\end{document}

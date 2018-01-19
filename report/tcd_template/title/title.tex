@@ -1,0 +1,53 @@
+\begin{titlepage}
+
+\center % Center everything on the page
+
+%% All the text parameters should be taken from the start of the main.tex file.
+%% You should only alter stuff here if you want to change the layout
+
+%----------------------------------------------------------------------------------------
+%	LOGO SECTION
+%----------------------------------------------------------------------------------------
+%% Choose one of the following -- a colour or black-and-white logo
+
+\includegraphics{title/Trinity_RGB_transparent_main.png}\\[1cm] 
+%\includegraphics[width=12cm]{title/black-stacked-trinity.jpg}\\[1cm] 
+
+\Large \school\\[1.5cm] % Minor heading such as course title
+\ifdefined\department
+\large \department\\[1.5cm] % Minor heading such as course title
+\fi
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+\makeatletter
+{ \huge \bfseries \thesistitle}\\[1.5cm] % Title of your document
+ 
+
+%----------------------------------------------------------------------------------------
+%	AUTHOR SECTION
+%----------------------------------------------------------------------------------------
+
+\ifdefined\authorid
+\authorname\\ % Your name
+\authorid\\[2cm] % Your Student ID
+\else
+\authorname\\[2cm] % Your name
+\fi
+
+%----------------------------------------------------------------------------------------
+%	DATE SECTION
+%----------------------------------------------------------------------------------------
+
+{\large \today}\\[2cm] % Date, change the \today to a set date if you want to be precise
+
+ 
+%----------------------------------------------------------------------------------------
+%	TYPE OF THESIS SECTION
+%----------------------------------------------------------------------------------------
+ A \typeofthesis\ submitted in partial fulfilment\\of the requirements for the degree of BAI (Computer Engineering)
+
+\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
