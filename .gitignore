@@ -5,3 +5,5 @@ tensorboard
 report.aux
 report.dvi
 report.log
+DeepMind_Code
+**.npy
