@@ -1,12 +1,12 @@
-import gym
+from os import getcwd
+from statistics import median, mean
+from collections import Counter
 import random
+import gym
 import numpy as np
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
-from statistics import median, mean
-from collections import Counter
-from os import getcwd
 
 LR = 0.001
 env = gym.make('CartPole-v0')
@@ -14,7 +14,7 @@ env.reset()
 goal_steps = 500
 score_requirement = 50
 initial_games = 10000
-num_episodes = 50
+num_episodes = 10
 max_steps = 200
 
 
@@ -35,10 +35,8 @@ def get_training_data():
         prev_observation = []
         env.reset()
         for _ in range(max_steps):
-            # env.render()
             action = env.action_space.sample()
             observation, reward, done, _ = env.step(action)
-            # print(observation, reward, info, sep='\n')
 
             # Observation is returned as a result of taking the current action
             # So we pair the previous observation with the current action
@@ -47,7 +45,6 @@ def get_training_data():
 
             prev_observation = observation
             score += reward
-            # print('E:{} F:{} S:{}'.format(episode, step, reward))
             if done:
                 break
 
@@ -99,7 +96,7 @@ def neural_network_model(input_size):
         name='targets'
     )
 
-    model = tflearn.DNN(network, tensorboard_dir=getcwd() + '/tensorboard')
+    model = tflearn.DNN(network)
     return model
 
 
@@ -111,7 +108,6 @@ def train_model(training_data, model=False):
     )
 
     Y = [i[1] for i in training_data]
-    print(Y)
     if model is False:
         model = neural_network_model(input_size=len(X[0]))
 
@@ -136,7 +132,7 @@ def predict_moves(model):
         prev_observation = []
         env.reset()
         for step in range(max_steps):
-            # env.render()
+            env.render()
             if len(prev_observation) == 0:
                 action = env.action_space.sample()
             else:
