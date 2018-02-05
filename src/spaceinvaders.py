@@ -1,12 +1,13 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 from collections import deque
 from ale_python_interface import ALEInterface
 import numpy as np
+import matplotlib.pyplot as plt
 from dqn import DeepQN
 from preprocessor import Preprocessor
 from replaymemory import ReplayMemory
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 class SpaceInvaders():
@@ -58,8 +59,8 @@ class SpaceInvaders():
             # Play for 3 frames and stack'em up
             for _ in range(3):
                 # Save model every 10% of the way through training
-                if frame_counter % max_frames * 0.1 == 0:
-                    print('Frame: ', frame_counter)
+                if frame_counter % (max_frames * 0.1) == 0:
+                    print('Checkpoint on frame: ', frame_counter)
                     self.dqn.save_network('model.h5')
 
                 reward = self.ale.act(action)
@@ -113,6 +114,7 @@ class SpaceInvaders():
         print('Frames Survived: ', self.ale.getEpisodeFrameNumber())
         print('Score: ', total_reward)
         self.ale.reset_game()
+        return total_reward
 
     def simulate_random(self):
         done = False
@@ -131,9 +133,57 @@ class SpaceInvaders():
         print('Score: ', total_reward)
         self.ale.reset_game()
 
+    def save_results(self, pathx, pathy, frames_trained_for, scores):
+        '''
+        Saves the scores of individual games and the number of frames that the model
+        was trained for as numpy arrays. Intended to be used to visualize performance
+        in final report
+
+        pathx: str path to saved numpy array of saved frames_trained_for values
+        pathy: same but for saved scores
+        frames_trained_for: number of frames the model had been trained for to produce the given scores
+        scores: list of scores obtained from a simulation
+        '''
+        x = [frames_trained_for for _ in range(len(scores))]
+        try:
+            xdata = np.load(pathx)
+            ydata = np.load(pathy)
+            xdata = np.concatenate([xdata, x])
+            ydata = np.concatenate([ydata, scores])
+        except FileNotFoundError:
+            if '.npy' not in pathx or '.npy' not in pathy:
+                print('Paths must include the .npy extension')
+                return
+
+            xdata = x
+            ydata = scores
+
+        np.save(pathx, xdata)
+        np.save(pathy, ydata)
+
+    def plot_results(self, pathx, pathy):
+        try:
+            xdata = np.load(pathx)
+            ydata = np.load(pathy)
+        except FileNotFoundError:
+            if '.npy' not in pathx or '.npy' not in pathy:
+                print('Paths must include the .npy extension')
+            else:
+                print('No data to plot')
+
+            return
+
+        plt.plot(xdata, ydata, 'ro')
+        plt.show()
+
 
 if __name__ == '__main__':
     game = SpaceInvaders(display=False, load_model=True)
     # game.train()
-    game.simulate_random()
-    game.simulate_intelligent()
+    # game.simulate_random()
+    collected_scores = []
+    for _ in range(8):
+        collected_scores.append(game.simulate_intelligent())
+
+    game.save_results('dqn_xdata.npy', 'dqn_ydata.npy', 2000, collected_scores)
+    game.plot_results('dqn_xdata.npy', 'dqn_ydata.npy')
