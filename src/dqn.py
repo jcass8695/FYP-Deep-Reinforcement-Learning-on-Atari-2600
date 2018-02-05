@@ -1,37 +1,25 @@
 import sys
-from random import randrange
-from collections import deque
-from keras.models import Sequential
+from keras.models import load_model, Sequential
 from keras.layers import Conv2D, Dense, Flatten
 from keras.optimizers import Adam
 import numpy as np
-from ale_python_interface import ALEInterface
-
-if len(sys.argv) < 2:
-    print('Usage:', sys.argv[0], 'rom_file.bin')
-    sys.exit()
-
-ale = ALEInterface()
-ale.setInt(b'random_seed', 123)
-ale.setBool(b'display_screen', True)
-rom_file = str.encode(sys.argv[1])
-ale.loadROM(rom_file)
+from replaymemory import ReplayMemory
 
 
-class DeepQ():
-    def __init__(self):
+class DeepQN():
+    def __init__(self, input_shape, valid_action_set, replay_memory: ReplayMemory):
         # Parameters
-        self.minibatch_size = 64
-        self.num_stacked_frames = 3
         self.epsilon = 0.1  # Exploration rate
         self.epsilon_floor = 0.05
         self.epsilon_decay_rate = 0.99
         self.gamma = 0.95  # Discount rate
         self.learning_rate = 0.00001
 
-        self.valid_action_set = ale.getMinimalActionSet()
+        self.minibatch_size = 64
+        self.memory = replay_memory
+        self.input_shape = input_shape
+        self.valid_action_set = valid_action_set
         self.model = self.build_q_network()
-        self.experience_memory = deque(maxlen=2000)
 
     def build_q_network(self):
         '''
@@ -39,7 +27,7 @@ class DeepQ():
         that takes preprocessed frames as input and outputs
         Q-Values for each available action in the game.
 
-        Frames have been cropped to 84x84 pixels and converted to greyscale for
+        Frames have already been converted to greyscale for
         computational efficiency as color does not effect gameplay
         '''
 
@@ -47,7 +35,7 @@ class DeepQ():
         model.add(Conv2D(
             32,
             (8, 8),
-            input_shape=(84, 84, self.num_stacked_frames),
+            input_shape=self.input_shape,
             strides=(4, 4),
             activation='relu'
         ))
@@ -61,32 +49,41 @@ class DeepQ():
 
     def predict_move(self, state):
         q_values = self.model.predict(
-            state.reshape(1, 84, 84, self.num_stacked_frames),
+            np.expand_dims(state, 0),  # Add extra axis
             batch_size=1
         )
-
-        optimal_policy = np.argmax(q_values)  # Index of the best Q Value
-        if np.random.random() < self.epsilon:
-            optimal_policy = np.random.choice(self.valid_action_set)
 
         # Translate the index of the highest Q value action to an action
         # in the games set. This is required as the games action set may look
         # like this: [0, 1, 2, 3, 6, 17, 18]
+        optimal_policy = np.argmax(q_values)
         optimal_action = self.valid_action_set[optimal_policy]
+        if np.random.random() < self.epsilon:
+            optimal_action = np.random.choice(self.valid_action_set)
 
-        return optimal_action, q_values[0, optimal_policy]
+        return optimal_action
 
+    def replay_training(self):
+        minibatch = self.memory.sample()
+        for state, action, reward, done, next_state in minibatch:
+            target = reward
+            if not done:
+                target = (reward + self.gamma * np.amax(
+                    self.model.predict(np.expand_dims(next_state, 0), batch_size=1)))
 
-try:
-    for episode in range(10):
-        total_reward = 0
-        while not ale.game_over():
-            a = specific_actions[randrange(len(specific_actions))]
-            reward = ale.act(a)
-            total_reward += reward
+            target_f = self.model.predict(np.expand_dims(state, 0))
+            target_f[0][self.valid_action_set.index(action)] = target
 
-        print('Episode ended with score:', total_reward)
-        ale.reset_game()
+            self.model.fit(np.expand_dims(state, 0),
+                           target_f, epochs=1, verbose=0)
 
-except KeyboardInterrupt:
-    print('Shutting Down')
+        if self.epsilon > self.epsilon_floor:
+            self.epsilon *= self.epsilon_decay_rate
+
+    def save_network(self, path):
+        self.model.save(path)
+        print("Successfully saved network.")
+
+    def load_network(self, path):
+        self.model = load_model(path)
+        print("Succesfully loaded network.")

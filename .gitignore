@@ -1,9 +1,6 @@
 venv
 .vscode
-training_data.npy
-tensorboard
+__pycache__
 report.aux
 report.dvi
 report.log
-DeepMind_Code
-**.npy
