@@ -7,7 +7,7 @@ from replaymemory import ReplayMemory
 
 
 class DeepQN():
-    def __init__(self, input_shape, valid_action_set, replay_memory: ReplayMemory):
+    def __init__(self, input_shape, valid_action_set, replay_memory: ReplayMemory, load=False):
         # Parameters
         self.epsilon = 0.1  # Exploration rate
         self.epsilon_floor = 0.05
@@ -19,7 +19,11 @@ class DeepQN():
         self.memory = replay_memory
         self.input_shape = input_shape
         self.valid_action_set = valid_action_set
-        self.model = self.build_q_network()
+
+        if load:
+            self.model = self.load_network('./model.h5')
+        else:
+            self.model = self.build_q_network()
 
     def build_q_network(self):
         '''
@@ -85,5 +89,10 @@ class DeepQN():
         print("Successfully saved network.")
 
     def load_network(self, path):
-        self.model = load_model(path)
-        print("Succesfully loaded network.")
+        try:
+            print("Succesfully loaded network.")
+            return load_model(path)
+        except ValueError:
+            print('Model does not exist at that path')
+            print('Exiting program...')
+            sys.exit()

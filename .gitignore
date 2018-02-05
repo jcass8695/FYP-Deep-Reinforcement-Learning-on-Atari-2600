@@ -4,3 +4,4 @@ __pycache__
 report.aux
 report.dvi
 report.log
+**.h5
