@@ -1,7 +1,9 @@
 import sys
+from datetime import datetime
 from keras.models import load_model, Sequential
 from keras.layers import Conv2D, Dense, Flatten
 from keras.optimizers import Adam
+from keras.callbacks import TensorBoard
 import numpy as np
 from replaymemory import ReplayMemory
 
@@ -19,11 +21,12 @@ class DeepQN():
         self.memory = replay_memory
         self.input_shape = input_shape
         self.valid_action_set = valid_action_set
+        self.tb_callback = TensorBoard(log_dir='../tblogs', write_images=True)
 
         if load:
-            self.model = self.load_network('./model.h5')
+            self.q_model = self.load_network('./model.h5')
         else:
-            self.model = self.build_q_network()
+            self.q_model = self.build_q_network()
 
     def build_q_network(self):
         '''
@@ -52,7 +55,7 @@ class DeepQN():
         return model
 
     def predict_move(self, state):
-        q_values = self.model.predict(
+        q_values = self.q_model.predict(
             np.expand_dims(state, 0),  # Add extra axis
             batch_size=1
         )
@@ -73,20 +76,24 @@ class DeepQN():
             target = reward
             if not done:
                 target = (reward + self.gamma * np.amax(
-                    self.model.predict(np.expand_dims(next_state, 0), batch_size=1)))
+                    self.q_model.predict(np.expand_dims(next_state, 0), batch_size=1)))
 
-            target_f = self.model.predict(np.expand_dims(state, 0))
+            target_f = self.q_model.predict(np.expand_dims(state, 0))
             target_f[0][self.valid_action_set.index(action)] = target
 
-            self.model.fit(np.expand_dims(state, 0),
-                           target_f, epochs=1, verbose=0)
+            self.q_model.fit(
+                np.expand_dims(state, 0),
+                target_f,
+                verbose=0,
+                callbacks=[self.tb_callback]
+            )
 
         if self.epsilon > self.epsilon_floor:
             self.epsilon *= self.epsilon_decay_rate
 
     def save_network(self, path):
-        self.model.save(path)
-        print("Successfully saved network.")
+        self.q_model.save(path)
+        print("Successfully saved network at ", datetime.now())
 
     def load_network(self, path):
         try:

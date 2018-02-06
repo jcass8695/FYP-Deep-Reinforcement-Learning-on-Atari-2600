@@ -1,5 +1,6 @@
 import os
 from collections import deque
+from datetime import datetime
 from ale_python_interface import ALEInterface
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +14,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 class SpaceInvaders():
     def __init__(self, display=False, load_model=False):
         self.ale = ALEInterface()
-
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
         self.ale.setBool(str.encode('display_screen'), display)
         self.ale.loadROM(str.encode('./roms/space_invaders.bin'))
@@ -39,7 +39,7 @@ class SpaceInvaders():
         print('Frame Shape: ', self.frame_shape)
         print('Network Input Shape: ', self.network_input_shape)
 
-    def train(self, max_frames=1000):
+    def train(self, max_frames=100000):
         total_reward = 0
         frame_counter = 0
         alive_counter = 0
@@ -49,46 +49,53 @@ class SpaceInvaders():
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
 
-        while frame_counter < max_frames:
-            gameover = False
-            initial_state = self.preprocessor.stack_frames(self.frame_buffer)
-            action = self.dqn.predict_move(initial_state)
-            print('Predicted Action: ', action)
-            self.frame_buffer.clear()
+        try:
+            while frame_counter < max_frames:
+                gameover = False
+                initial_state = self.preprocessor.stack_frames(
+                    self.frame_buffer)
+                action = self.dqn.predict_move(initial_state)
+                print('Predicted Action: ', action)
+                self.frame_buffer.clear()
 
-            # Play for 3 frames and stack'em up
-            for _ in range(3):
-                # Save model every 10% of the way through training
-                if frame_counter % (max_frames * 0.1) == 0:
-                    print('Checkpoint on frame: ', frame_counter)
-                    self.dqn.save_network('model.h5')
+                # Play for 3 frames and stack'em up
+                for _ in range(3):
+                    # Save model every 10% of the way through training
+                    if frame_counter % 500 == 0:
+                        self.dqn.save_network('model.h5')
+                        print('Frame: ', frame_counter)
 
-                reward = self.ale.act(action)
-                self.frame_buffer.append(
-                    np.squeeze(self.ale.getScreenGrayscale()))
+                    reward = self.ale.act(action)
+                    self.frame_buffer.append(
+                        np.squeeze(self.ale.getScreenGrayscale()))
 
-                total_reward += reward
-                frame_counter += 1
-                alive_counter += 1
+                    total_reward += reward
+                    frame_counter += 1
+                    alive_counter += 1
 
-            if self.ale.game_over():
-                print('Gameover!')
-                print('F: {}, S: {}'.format(alive_counter, total_reward))
-                gameover = True
-                total_reward = 0
-                alive_counter = 0
-                self.ale.reset_game()
+                if self.ale.game_over():
+                    print('Gameover!')
+                    print('F: {}, S: {}'.format(alive_counter, total_reward))
+                    gameover = True
+                    total_reward = 0
+                    alive_counter = 0
+                    self.ale.reset_game()
 
-            new_state = self.preprocessor.stack_frames(self.frame_buffer)
-            self.replay_memory.add(
-                initial_state,
-                action,
-                reward,
-                gameover,
-                new_state
-            )
+                new_state = self.preprocessor.stack_frames(self.frame_buffer)
+                self.replay_memory.add(
+                    initial_state,
+                    action,
+                    reward,
+                    gameover,
+                    new_state
+                )
 
-            self.dqn.replay_training()
+                self.dqn.replay_training()
+        except:
+            self.dqn.save_network('model.h5')
+            self.ale.reset_game()
+            print('Stopped on frame: ', frame_counter)
+            return
 
     def simulate_intelligent(self):
         done = False
@@ -179,11 +186,12 @@ class SpaceInvaders():
 
 if __name__ == '__main__':
     game = SpaceInvaders(display=False, load_model=True)
-    # game.train()
+    game.train()
     # game.simulate_random()
-    collected_scores = []
-    for _ in range(8):
-        collected_scores.append(game.simulate_intelligent())
+    # game.simulate_intelligent()
+    # collected_scores = []
+    # for _ in range(8):
+    #     collected_scores.append(game.simulate_intelligent())
 
-    game.save_results('dqn_xdata.npy', 'dqn_ydata.npy', 2000, collected_scores)
-    game.plot_results('dqn_xdata.npy', 'dqn_ydata.npy')
+    # game.save_results('dqn_xdata.npy', 'dqn_ydata.npy', 2000, collected_scores)
+    # game.plot_results('dqn_xdata.npy', 'dqn_ydata.npy')
