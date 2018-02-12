@@ -1,4 +1,7 @@
+#! ../venv/bin/python
+
 import os
+import sys
 from collections import deque
 from datetime import datetime
 from ale_python_interface import ALEInterface
@@ -13,6 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class SpaceInvaders():
     def __init__(self, display=False, load_model=False):
+        self.name = 'space_invaders'
         self.ale = ALEInterface()
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
         self.ale.setBool(str.encode('display_screen'), display)
@@ -30,6 +34,7 @@ class SpaceInvaders():
             self.network_input_shape,
             self.legal_actions,
             self.replay_memory,
+            self.name,
             load=load_model
         )
 
@@ -51,19 +56,18 @@ class SpaceInvaders():
 
         try:
             while frame_counter < max_frames:
+                print('Frame: ', frame_counter)
                 gameover = False
                 initial_state = self.preprocessor.stack_frames(
                     self.frame_buffer)
                 action = self.dqn.predict_move(initial_state)
-                print('Predicted Action: ', action)
                 self.frame_buffer.clear()
 
                 # Play for 3 frames and stack'em up
                 for _ in range(3):
-                    # Save model every 10% of the way through training
+                    # Save model every 500 frames
                     if frame_counter % 500 == 0:
-                        self.dqn.save_network('model.h5')
-                        print('Frame: ', frame_counter)
+                        self.dqn.save_network(self.name)
 
                     reward = self.ale.act(action)
                     self.frame_buffer.append(
@@ -91,11 +95,11 @@ class SpaceInvaders():
                 )
 
                 self.dqn.replay_training()
+
         except:
-            self.dqn.save_network('model.h5')
+            self.dqn.save_network(self.name)
             self.ale.reset_game()
             print('Stopped on frame: ', frame_counter)
-            return
 
     def simulate_intelligent(self):
         done = False
@@ -140,31 +144,20 @@ class SpaceInvaders():
         print('Score: ', total_reward)
         self.ale.reset_game()
 
-    def save_results(self, pathx, pathy, frames_trained_for, scores):
-        '''
-        Saves the scores of individual games and the number of frames that the model
-        was trained for as numpy arrays. Intended to be used to visualize performance
-        in final report
+    def save_results(self, pathx, pathy, xdata, ydata):
+        ''' Save a set of metrics to numpy arrays specified by pathx, pathy '''
 
-        pathx: str path to saved numpy array of saved frames_trained_for values
-        pathy: same but for saved scores
-        frames_trained_for: number of frames the model had been trained for to produce the given scores
-        scores: list of scores obtained from a simulation
-        '''
-        x = [frames_trained_for for _ in range(len(scores))]
         try:
-            xdata = np.load(pathx)
-            ydata = np.load(pathy)
-            xdata = np.concatenate([xdata, x])
-            ydata = np.concatenate([ydata, scores])
+            xdata_loaded = np.load(pathx)
+            ydata_loaded = np.load(pathy)
+            xdata_loaded = np.append(xdata_loaded, xdata)
+            ydata_loaded = np.append(ydata_loaded, ydata)
         except FileNotFoundError:
             if '.npy' not in pathx or '.npy' not in pathy:
                 print('Paths must include the .npy extension')
                 return
 
-            xdata = x
-            ydata = scores
-
+        print('Saved {}, {} at {}'.format(pathx, pathx, datetime.now()))
         np.save(pathx, xdata)
         np.save(pathy, ydata)
 
@@ -176,7 +169,7 @@ class SpaceInvaders():
             if '.npy' not in pathx or '.npy' not in pathy:
                 print('Paths must include the .npy extension')
             else:
-                print('No data to plot')
+                print('No data to plot found at {} or {}'.format(pathx, pathy))
 
             return
 
@@ -185,13 +178,25 @@ class SpaceInvaders():
 
 
 if __name__ == '__main__':
-    game = SpaceInvaders(display=False, load_model=True)
-    game.train()
-    # game.simulate_random()
-    # game.simulate_intelligent()
-    # collected_scores = []
-    # for _ in range(8):
-    #     collected_scores.append(game.simulate_intelligent())
+    game = SpaceInvaders(display=False, load_model=False)
+    interval = 500
+    max_frames = 500000
+    games_to_play = 1
 
-    # game.save_results('dqn_xdata.npy', 'dqn_ydata.npy', 2000, collected_scores)
-    # game.plot_results('dqn_xdata.npy', 'dqn_ydata.npy')
+    for i in range(max_frames // interval):
+        game.train(interval)
+        running_score = 0
+        for _ in range(games_to_play):
+            running_score += game.simulate_intelligent()
+
+        running_score /= games_to_play
+
+        # Save the Average Score over 10 games for this interval
+        game.save_results(
+            './data/{}_avgscorex_dqn.npy'.format(game.name),
+            './data/{}_avgscorey_dqn.npy'.format(game.name),
+            (i + 1) * interval,
+            running_score
+        )
+
+        sys.exit()

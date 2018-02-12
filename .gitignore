@@ -5,3 +5,4 @@ report.aux
 report.dvi
 report.log
 **.h5
+src/data

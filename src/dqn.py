@@ -9,7 +9,7 @@ from replaymemory import ReplayMemory
 
 
 class DeepQN():
-    def __init__(self, input_shape, valid_action_set, replay_memory: ReplayMemory, load=False):
+    def __init__(self, input_shape, valid_action_set, replay_memory: ReplayMemory, game, load=False):
         # Parameters
         self.epsilon = 0.1  # Exploration rate
         self.epsilon_floor = 0.05
@@ -21,10 +21,9 @@ class DeepQN():
         self.memory = replay_memory
         self.input_shape = input_shape
         self.valid_action_set = valid_action_set
-        self.tb_callback = TensorBoard(log_dir='../tblogs', write_images=True)
 
         if load:
-            self.q_model = self.load_network('./model.h5')
+            self.q_model = self.load_network(game)
         else:
             self.q_model = self.build_q_network()
 
@@ -71,6 +70,8 @@ class DeepQN():
         return optimal_action
 
     def replay_training(self):
+        ''' Playing Atari with Deep Reinforcement Learning (DeepMind, 2013), Algorithm 1 '''
+
         minibatch = self.memory.sample()
         for state, action, reward, done, next_state in minibatch:
             target = reward
@@ -84,21 +85,21 @@ class DeepQN():
             self.q_model.fit(
                 np.expand_dims(state, 0),
                 target_f,
-                verbose=0,
-                callbacks=[self.tb_callback]
+                verbose=0
             )
 
         if self.epsilon > self.epsilon_floor:
             self.epsilon *= self.epsilon_decay_rate
 
-    def save_network(self, path):
-        self.q_model.save(path)
+    def save_network(self, game):
+        self.q_model.save('./data/{}_model_dqn.h5'.format(game))
         print("Successfully saved network at ", datetime.now())
 
-    def load_network(self, path):
+    def load_network(self, game):
         try:
+            model = load_model('./data/{}_model_dqn.h5'.format(game))
             print("Succesfully loaded network.")
-            return load_model(path)
+            return model
         except ValueError:
             print('Model does not exist at that path')
             print('Exiting program...')
