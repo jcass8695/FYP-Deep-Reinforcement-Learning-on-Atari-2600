@@ -2,12 +2,14 @@
 
 import os
 import sys
+import traceback
 from collections import deque
 from datetime import datetime
 from ale_python_interface import ALEInterface
 import numpy as np
 import matplotlib.pyplot as plt
 from dqn import DeepQN
+from double_dqn import DoubleDQN
 from preprocessor import Preprocessor
 from replaymemory import ReplayMemory
 
@@ -30,7 +32,14 @@ class SpaceInvaders():
         self.frame_buffer = deque(maxlen=3)
         self.replay_memory = ReplayMemory(2000, 32)
         self.preprocessor = Preprocessor(self.frame_shape)
-        self.dqn = DeepQN(
+        # self.dqn = DeepQN(
+        #     self.network_input_shape,
+        #     self.legal_actions,
+        #     self.replay_memory,
+        #     self.name,
+        #     load=load_model
+        # )
+        self.ddqn = DoubleDQN(
             self.network_input_shape,
             self.legal_actions,
             self.replay_memory,
@@ -59,15 +68,17 @@ class SpaceInvaders():
                 print('Frame: ', frame_counter)
                 gameover = False
                 initial_state = self.preprocessor.stack_frames(
-                    self.frame_buffer)
-                action = self.dqn.predict_move(initial_state)
+                    self.frame_buffer
+                )
+
+                action = self.ddqn.predict(initial_state)
                 self.frame_buffer.clear()
 
                 # Play for 3 frames and stack'em up
                 for _ in range(3):
                     # Save model every 500 frames
                     if frame_counter % 500 == 0:
-                        self.dqn.save_network(self.name)
+                        self.ddqn.save_model()
 
                     reward = self.ale.act(action)
                     self.frame_buffer.append(
@@ -94,10 +105,12 @@ class SpaceInvaders():
                     new_state
                 )
 
-                self.dqn.replay_training()
+                self.ddqn.replay_train()
 
-        except:
-            self.dqn.save_network(self.name)
+        except Exception as e:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            traceback.print_exception(exc_type, exc_val, exc_trace)
+            self.ddqn.save_model()
             self.ale.reset_game()
             print('Stopped on frame: ', frame_counter)
 
@@ -113,7 +126,7 @@ class SpaceInvaders():
         print('Simulating Game....')
         while not done:
             state = self.preprocessor.stack_frames(self.frame_buffer)
-            action = self.dqn.predict_move(state)
+            action = self.ddqn.predict(state)
             total_reward += self.ale.act(action)
 
             # Pushes oldest frame out
@@ -193,8 +206,8 @@ if __name__ == '__main__':
 
         # Save the Average Score over 10 games for this interval
         game.save_results(
-            './data/{}_avgscorex_dqn.npy'.format(game.name),
-            './data/{}_avgscorey_dqn.npy'.format(game.name),
+            './data/{}_avgscorex_ddqn.npy'.format(game.name),
+            './data/{}_avgscorey_ddqn.npy'.format(game.name),
             (i + 1) * interval,
             running_score
         )
