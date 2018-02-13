@@ -1,8 +1,9 @@
-#! ../venv/bin/python
-
+#!/home/support/apps/cports/rhel-7.x86_64/gnu/Python/3.6.4/bin/python3
+# The shebang is for usage on Trinity's Boole weird module thing (sigh`git)
 import os
 import sys
 import traceback
+import argparse
 from collections import deque
 from datetime import datetime
 from ale_python_interface import ALEInterface
@@ -17,7 +18,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 class SpaceInvaders():
-    def __init__(self, display=False, load_model=False):
+    def __init__(self, dl_type, display=False, load_model=False):
         self.name = 'space_invaders'
         self.ale = ALEInterface()
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
@@ -29,29 +30,32 @@ class SpaceInvaders():
         # Squeeze because getScreenGrayScale returns a shape of (210, 160, 1)
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape
         self.network_input_shape = self.frame_shape + (3,)  # (210, 160, 3)
-        self.frame_buffer = deque(maxlen=3)
+        self.frame_buffer = deque(maxlen=3)  # Holds the 3 most recent frames
         self.replay_memory = ReplayMemory(2000, 32)
         self.preprocessor = Preprocessor(self.frame_shape)
-        # self.dqn = DeepQN(
-        #     self.network_input_shape,
-        #     self.legal_actions,
-        #     self.replay_memory,
-        #     self.name,
-        #     load=load_model
-        # )
-        self.ddqn = DoubleDQN(
-            self.network_input_shape,
-            self.legal_actions,
-            self.replay_memory,
-            self.name,
-            load=load_model
-        )
+        if dl_type == 'DQN':
+            self.agent = DeepQN(
+                self.network_input_shape,
+                self.legal_actions,
+                self.replay_memory,
+                self.name,
+                load=load_model
+            )
+        else:
+            self.agent = DoubleDQN(
+                self.network_input_shape,
+                self.legal_actions,
+                self.replay_memory,
+                self.name,
+                load=load_model
+            )
 
         print('Space Invaders Loaded!')
         print('Displaying: ', display)
         print('Action Set: ', self.legal_actions)
         print('Frame Shape: ', self.frame_shape)
         print('Network Input Shape: ', self.network_input_shape)
+        print('Agent: ', dl_type)
 
     def train(self, max_frames=100000):
         total_reward = 0
@@ -71,14 +75,19 @@ class SpaceInvaders():
                     self.frame_buffer
                 )
 
-                action = self.ddqn.predict(initial_state)
+                action = self.agent.predict(initial_state)
                 self.frame_buffer.clear()
 
                 # Play for 3 frames and stack'em up
                 for _ in range(3):
                     # Save model every 500 frames
                     if frame_counter % 500 == 0:
-                        self.ddqn.save_model()
+                        self.agent.save_model()
+
+                    # If using a target model, update it's weights
+                    # from q model's every 500 frames
+                    if hasattr(self.agent, 'tau') and frame_counter % self.agent.tau == 0:
+                        self.agent.update_targetmodel()
 
                     reward = self.ale.act(action)
                     self.frame_buffer.append(
@@ -105,14 +114,14 @@ class SpaceInvaders():
                     new_state
                 )
 
-                self.ddqn.replay_train()
+                self.agent.replay_train()
 
         except Exception as e:
             exc_type, exc_val, exc_trace = sys.exc_info()
             traceback.print_exception(exc_type, exc_val, exc_trace)
-            self.ddqn.save_model()
+            self.agent.save_model()
             self.ale.reset_game()
-            print('Stopped on frame: ', frame_counter)
+            print('Exception on frame: ', frame_counter)
 
     def simulate_intelligent(self):
         done = False
@@ -126,7 +135,7 @@ class SpaceInvaders():
         print('Simulating Game....')
         while not done:
             state = self.preprocessor.stack_frames(self.frame_buffer)
-            action = self.ddqn.predict(state)
+            action = self.agent.predict(state)
             total_reward += self.ale.act(action)
 
             # Pushes oldest frame out
@@ -191,10 +200,28 @@ class SpaceInvaders():
 
 
 if __name__ == '__main__':
-    game = SpaceInvaders(display=False, load_model=False)
-    interval = 500
-    max_frames = 500000
-    games_to_play = 1
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'type',
+        help='The type of Deep Learning to use',
+        type=str,
+        choices=['dqn', 'ddqn']
+    )
+    parser.add_argument(
+        'max_frames',
+        help='The max number of frames to train the model for',
+        type=int
+    )
+    parser.add_argument(
+        'interval_frames',
+        help='The number of frames to run in between game simulation testing',
+        type=int
+    )
+    args = parser.parse_args()
+    game = SpaceInvaders(args.type, display=False, load_model=False)
+    interval = args.interval_frames
+    max_frames = args.max_frames
+    games_to_play = 10
 
     for i in range(max_frames // interval):
         game.train(interval)
@@ -206,8 +233,8 @@ if __name__ == '__main__':
 
         # Save the Average Score over 10 games for this interval
         game.save_results(
-            './data/{}_avgscorex_ddqn.npy'.format(game.name),
-            './data/{}_avgscorey_ddqn.npy'.format(game.name),
+            './data/{}_avgscorex_{}.npy'.format(game.name, game.agent),
+            './data/{}_avgscorey_{}.npy'.format(game.name, game.agent),
             (i + 1) * interval,
             running_score
         )

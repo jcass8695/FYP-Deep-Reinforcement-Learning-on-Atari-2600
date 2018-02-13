@@ -1,7 +1,5 @@
-import sys
 from abc import ABC, abstractmethod
-from datetime import datetime
-from keras.models import load_model, Sequential
+from keras.models import Sequential
 from keras.layers import Conv2D, Dense, Flatten
 from keras.optimizers import Adam
 from replaymemory import ReplayMemory

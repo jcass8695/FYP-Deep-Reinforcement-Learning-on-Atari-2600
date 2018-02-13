@@ -1,10 +1,7 @@
 import sys
 from datetime import datetime
 from nn_base import NN
-from keras.models import load_model, Sequential
-from keras.layers import Conv2D, Dense, Flatten
-from keras.optimizers import Adam
-from keras.callbacks import TensorBoard
+from keras.models import load_model
 import numpy as np
 from replaymemory import ReplayMemory
 
@@ -57,12 +54,12 @@ class DeepQN(NN):
             self.epsilon *= self.epsilon_decay_rate
 
     def save_model(self):
-        self.qmodel.save('./data/{}_qmodel_dqn.h5'.format(self.game_name))
+        self.qmodel.save('./data/{}_qmodel.h5'.format(self.game_name))
         print('Saved model at ', datetime.now())
 
     def load_model(self):
         try:
-            return load_model('./data/{}_qmodel_dqn.h5'.format(self.game_name))
+            return load_model('./data/{}_qmodel.h5'.format(self.game_name))
         except ValueError:
             print('Failed to load model for DQN')
             sys.exit()

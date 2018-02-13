@@ -1,8 +1,6 @@
 import sys
 from datetime import datetime
-from keras.models import load_model, Sequential
-from keras.layers import Conv2D, Dense, Flatten
-from keras.optimizers import Adam
+from keras.models import load_model
 import numpy as np
 from nn_base import NN
 from replaymemory import ReplayMemory
@@ -41,22 +39,21 @@ class DoubleDQN(NN):
         for state, action, reward, done, next_state in minibatch:
             target = reward
             if not done:
-                '''
-                Use the qmodel to select an action and the target model to
-                evaluate its Q value
-                '''
-                action_sel = np.argmax(self.qmodel.predict(
+                # Use the qmodel to select an action and the target model to
+                # evaluate the Q values
+                future_best_action_index = np.argmax(self.qmodel.predict(
                     np.expand_dims(next_state, 0), batch_size=1
                 ))
-                action_val = self.targetmodel.predict(
+                future_action_qvals = self.targetmodel.predict(
                     np.expand_dims(next_state, 0), batch_size=1
                 )[0]
 
-                target = reward + self.gamma * action_val[action_sel]
+                target = reward + self.gamma * \
+                    future_action_qvals[future_best_action_index]
 
             ypred = self.qmodel.predict(np.expand_dims(state, 0))
-            # In the future if we pick action the Q value will be higher/lower depending on
-            # the max Q value of the next state best action
+            # In the future if we do <action> the Q value will now be influenced
+            # by the max Q value of the next states best action (discounted future reward)
             ypred[0][self.output_shape.index(action)] = target
             self.qmodel.fit(
                 np.expand_dims(state, 0),
@@ -71,9 +68,9 @@ class DoubleDQN(NN):
         self.targetmodel.set_weights(self.qmodel.get_weights())
 
     def save_model(self):
-        self.qmodel.save('./data/{}_qmodel_dqn.h5'.format(self.game_name))
+        self.qmodel.save('./data/{}_qmodel.h5'.format(self.game_name))
         self.targetmodel.save(
-            './data/{}_targetmodel_ddqn.h5'.format(self.game_name)
+            './data/{}_targetmodel.h5'.format(self.game_name)
         )
 
         print('Saved models at ', datetime.now())
@@ -81,10 +78,10 @@ class DoubleDQN(NN):
     def load_model(self):
         try:
             qmodel = load_model(
-                './data/{}_qmodel_dqn.h5'.format(self.game_name)
+                './data/{}_qmodel.h5'.format(self.game_name)
             )
             tmodel = load_model(
-                './data/{}_targetmodel_ddqn.h5'.format(self.game_name)
+                './data/{}_targetmodel.h5'.format(self.game_name)
             )
 
             return qmodel, tmodel
