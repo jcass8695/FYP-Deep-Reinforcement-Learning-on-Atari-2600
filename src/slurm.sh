@@ -1,11 +1,13 @@
-#!bin/sh
-#SBATCH -n 16           # 16 cores
-#SBATCH -t 0-13:00:00   # 13 hours
-#SBATCH -p gu-shared      # partition name
-#SBATCH -J spaceinvaders_train  # sensible name for the job
+#!/bin/sh
+#SBATCH -n 1
+#SBATCH -t 12:00:00
+#SBATCH -p gpu-shared
+#SBATCH -J spaceinvaders_train
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jacassid@tcd.ie
 
 . /etc/profile.d/modules.sh
 module load cports7 Python/3.6.4-gnu
 module load cports7 gcc/6.4.0-gnu
 
-mpirun ./spaceinvaders.py
+srun ./spaceinvaders.py dqn 500000 5000
