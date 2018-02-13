@@ -4,5 +4,5 @@ __pycache__
 report.aux
 report.dvi
 report.log
-**.h5
-src/data
+*.h5
+src/data/*
