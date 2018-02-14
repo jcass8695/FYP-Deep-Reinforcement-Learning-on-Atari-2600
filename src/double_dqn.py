@@ -12,8 +12,7 @@ class DoubleDQN(NN):
         self.tau = 500  # Number of frames before updating the target network weights
 
         if load:
-            self.qmodel = self.load_model()
-            self.targetmodel = self.load_model()
+            self.qmodel, self.targetmodel = self.load_model()
         else:
             self.qmodel = self.build_qmodel()
             self.targetmodel = self.build_qmodel()
@@ -85,6 +84,6 @@ class DoubleDQN(NN):
             )
 
             return qmodel, tmodel
-        except ValueError:
+        except OSError:
             print('Failed to load models for DDQN')
             sys.exit()

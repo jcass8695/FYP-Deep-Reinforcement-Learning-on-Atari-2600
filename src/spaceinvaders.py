@@ -9,12 +9,43 @@ from datetime import datetime
 from ale_python_interface import ALEInterface
 import numpy as np
 import matplotlib.pyplot as plt
+from keras import backend as K
 from dqn import DeepQN
 from double_dqn import DoubleDQN
 from preprocessor import Preprocessor
 from replaymemory import ReplayMemory
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    'type',
+    help='The type of Deep Learning to use',
+    type=str,
+    choices=['dqn', 'ddqn']
+)
+parser.add_argument(
+    'max_frames',
+    help='The max number of frames to train the model for',
+    type=int
+)
+parser.add_argument(
+    'interval_frames',
+    help='The number of frames to run in between game simulation testing',
+    type=int
+)
+parser.add_argument(
+    '-l',
+    '--load_model',
+    help='Load a previously trained model?',
+    action='store_true'
+)
+parser.add_argument(
+    '-d',
+    '--display',
+    help='Display viedo output of game?',
+    action='store_true'
+)
+args = parser.parse_args()
 
 
 class SpaceInvaders():
@@ -33,7 +64,7 @@ class SpaceInvaders():
         self.frame_buffer = deque(maxlen=3)  # Holds the 3 most recent frames
         self.replay_memory = ReplayMemory(2000, 32)
         self.preprocessor = Preprocessor(self.frame_shape)
-        if dl_type == 'DQN':
+        if dl_type == 'dqn':
             self.agent = DeepQN(
                 self.network_input_shape,
                 self.legal_actions,
@@ -68,8 +99,7 @@ class SpaceInvaders():
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
 
         try:
-            while frame_counter < max_frames:
-                print('Frame: ', frame_counter)
+            while frame_counter + 3 < max_frames:
                 gameover = False
                 initial_state = self.preprocessor.stack_frames(
                     self.frame_buffer
@@ -93,6 +123,7 @@ class SpaceInvaders():
                     self.frame_buffer.append(
                         np.squeeze(self.ale.getScreenGrayscale()))
 
+                    print('Frame: ', frame_counter)
                     total_reward += reward
                     frame_counter += 1
                     alive_counter += 1
@@ -143,11 +174,12 @@ class SpaceInvaders():
             if self.ale.game_over():
                 done = True
 
+        frames_survived = self.ale.getEpisodeFrameNumber()
         print('Game Over')
-        print('Frames Survived: ', self.ale.getEpisodeFrameNumber())
+        print('Frames Survived: ', frames_survived)
         print('Score: ', total_reward)
         self.ale.reset_game()
-        return total_reward
+        return total_reward, frames_survived
 
     def simulate_random(self):
         done = False
@@ -161,10 +193,12 @@ class SpaceInvaders():
             if self.ale.game_over():
                 done = True
 
+        frames_survived = self.ale.getEpisodeFrameNumber()
         print('Game Over')
-        print('Frames Survived: ', self.ale.getEpisodeFrameNumber())
+        print('Frames Survived: ', frames_survived)
         print('Score: ', total_reward)
         self.ale.reset_game()
+        return total_reward, frames_survived
 
     def save_results(self, pathx, pathy, xdata, ydata):
         ''' Save a set of metrics to numpy arrays specified by pathx, pathy '''
@@ -174,14 +208,18 @@ class SpaceInvaders():
             ydata_loaded = np.load(pathy)
             xdata_loaded = np.append(xdata_loaded, xdata)
             ydata_loaded = np.append(ydata_loaded, ydata)
+
         except FileNotFoundError:
             if '.npy' not in pathx or '.npy' not in pathy:
                 print('Paths must include the .npy extension')
                 return
+            else:
+                xdata_loaded = xdata
+                ydata_loaded = ydata
 
-        print('Saved {}, {} at {}'.format(pathx, pathx, datetime.now()))
-        np.save(pathx, xdata)
-        np.save(pathy, ydata)
+        np.save(pathx, xdata_loaded)
+        np.save(pathy, ydata_loaded)
+        print('Saved {}, {} at {}'.format(pathx, pathy, datetime.now()))
 
     def plot_results(self, pathx, pathy):
         try:
@@ -200,25 +238,12 @@ class SpaceInvaders():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'type',
-        help='The type of Deep Learning to use',
-        type=str,
-        choices=['dqn', 'ddqn']
+    game = SpaceInvaders(
+        args.type,
+        display=args.display,
+        load_model=args.load_model
     )
-    parser.add_argument(
-        'max_frames',
-        help='The max number of frames to train the model for',
-        type=int
-    )
-    parser.add_argument(
-        'interval_frames',
-        help='The number of frames to run in between game simulation testing',
-        type=int
-    )
-    args = parser.parse_args()
-    game = SpaceInvaders(args.type, display=False, load_model=False)
+
     interval = args.interval_frames
     max_frames = args.max_frames
     games_to_play = 10
@@ -226,17 +251,29 @@ if __name__ == '__main__':
     for i in range(max_frames // interval):
         game.train(interval)
         running_score = 0
+        frames_survived = 0
         for _ in range(games_to_play):
-            running_score += game.simulate_intelligent()
+            game_scores = game.simulate_intelligent()
+            running_score += game_scores[0]
+            frames_survived += game_scores[1]
 
         running_score /= games_to_play
+        frames_survived /= games_to_play
 
-        # Save the Average Score over 10 games for this interval
+        # Save the Average Score and Frames survived over 10 games for this interval
         game.save_results(
-            './data/{}_avgscorex_{}.npy'.format(game.name, game.agent),
-            './data/{}_avgscorey_{}.npy'.format(game.name, game.agent),
+            './data/{}_avgscorex_{}.npy'.format(game.name, args.type),
+            './data/{}_avgscorey_{}.npy'.format(game.name, args.type),
             (i + 1) * interval,
             running_score
         )
 
-        sys.exit()
+        game.save_results(
+            './data/{}_avgframes_survx_{}.npy'.format(game.name, args.type),
+            './data/{}_avgframes_survy_{}.npy'.format(game.name, args.type),
+            (i + 1) * interval,
+            frames_survived
+        )
+
+    # Silence weird TF exception https://github.com/tensorflow/tensorflow/issues/3388
+    K.clear_session()

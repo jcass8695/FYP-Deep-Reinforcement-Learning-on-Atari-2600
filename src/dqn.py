@@ -8,7 +8,7 @@ from replaymemory import ReplayMemory
 
 class DeepQN(NN):
     def __init__(self, input_shape, output_shape, replay_memory: ReplayMemory, game_name, load=False):
-        super().__init__(input_shape, output_shape, replay_memory, game_name, load)
+        super().__init__(input_shape, output_shape, replay_memory, game_name)
         if load:
             self.qmodel = self.load_model()
         else:
@@ -60,6 +60,6 @@ class DeepQN(NN):
     def load_model(self):
         try:
             return load_model('./data/{}_qmodel.h5'.format(self.game_name))
-        except ValueError:
+        except OSError:
             print('Failed to load model for DQN')
             sys.exit()
