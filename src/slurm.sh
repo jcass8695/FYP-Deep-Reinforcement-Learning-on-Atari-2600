@@ -11,4 +11,4 @@
 module load cports7 Python/3.6.4-gnu
 module load cports7 gcc/6.4.0-gnu
 module load apps cuda/8.0
-srun ./main.py $2 500000 1000 $3
+srun ./main.py $1 $2 500000 1000 $3
