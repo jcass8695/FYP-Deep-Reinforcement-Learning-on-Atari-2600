@@ -2,7 +2,7 @@
 #SBATCH -n 1
 #SBATCH -t 1-00:00:00
 #SBATCH -p compute
-#SBATCH -J $1_train
+#SBATCH -J fyp_train
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=jacassid@tcd.ie
 #SBATCH --gres=gpu:2
