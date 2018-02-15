@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH -n 1
-#SBATCH -t 12:00:00
-#SBATCH -p gpu-shared
+#SBATCH -t 1-00:00:00
+#SBATCH -p compute
 #SBATCH -J spaceinvaders_train
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=jacassid@tcd.ie

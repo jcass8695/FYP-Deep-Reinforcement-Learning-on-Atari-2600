@@ -44,14 +44,16 @@ class DeepQN(NN):
             ypred = self.qmodel.predict(np.expand_dims(state, 0))
             ypred[0][self.output_shape.index(action)] = target
 
-            self.qmodel.fit(
+            loss = self.qmodel.fit(
                 np.expand_dims(state, 0),
                 ypred,
                 verbose=0
-            )
+            ).history['loss']
 
         if self.epsilon > self.epsilon_floor:
             self.epsilon *= self.epsilon_decay_rate
+
+        return loss
 
     def save_model(self):
         self.qmodel.save('./data/{}_qmodel.h5'.format(self.game_name))

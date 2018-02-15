@@ -8,12 +8,12 @@ from replaymemory import ReplayMemory
 class NN(ABC):
     def __init__(self, input_shape, output_shape, replay_memory: ReplayMemory, game_name):
         # Model Parameters
-        self.epsilon = 0.1  # Exploration rate
-        self.epsilon_floor = 0.05  # Min Exploration rate
+        self.epsilon = 1.0  # Exploration rate
+        self.epsilon_floor = 0.1  # Min Exploration rate
         self.epsilon_decay_rate = 0.99
         self.gamma = 0.95  # Discount rate
-        self.learning_rate = 0.00001
-        self.minibatch_size = 64
+        self.learning_rate = 0.000025
+        self.minibatch_size = 32
 
         self.replay_memory = replay_memory
         self.input_shape = input_shape
@@ -22,7 +22,7 @@ class NN(ABC):
 
     def build_qmodel(self):
         '''
-        Builds the CNN (from https://github.com/yilundu/DQN-DDQN-on-Space-Invaders/blob/master/deep_Q.py),
+        Builds the CNN (from Human-Level control paper - Model Architecture),
         that takes preprocessed frames as input and outputs
         Q-Values for each available action in the game.
 

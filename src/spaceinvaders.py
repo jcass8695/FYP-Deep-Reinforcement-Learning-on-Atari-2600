@@ -1,4 +1,4 @@
-#!/home/support/apps/cports/rhel-7.x86_64/gnu/Python/3.6.4/bin/python3
+#!/home/support/apps/cports/rhel-7.x86_64/gnu/Python/3.5.2/bin/python3
 # The shebang is for usage on Trinity's Boole weird module thing (sigh`git)
 import os
 import sys
@@ -16,6 +16,7 @@ from preprocessor import Preprocessor
 from replaymemory import ReplayMemory
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     'type',
@@ -46,6 +47,9 @@ parser.add_argument(
     action='store_true'
 )
 args = parser.parse_args()
+if not args.load_model and input('Are you sure you want to overwrite model? y/n: ') == 'n':
+    print('Quitting')
+    sys.exit()
 
 
 class SpaceInvaders():
@@ -62,7 +66,7 @@ class SpaceInvaders():
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape
         self.network_input_shape = self.frame_shape + (3,)  # (210, 160, 3)
         self.frame_buffer = deque(maxlen=3)  # Holds the 3 most recent frames
-        self.replay_memory = ReplayMemory(2000, 32)
+        self.replay_memory = ReplayMemory(500000, 32)
         self.preprocessor = Preprocessor(self.frame_shape)
         if dl_type == 'dqn':
             self.agent = DeepQN(
@@ -92,6 +96,7 @@ class SpaceInvaders():
         total_reward = 0
         frame_counter = 0
         alive_counter = 0
+        losses = []
 
         # Initialize frame buffer
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
@@ -145,7 +150,11 @@ class SpaceInvaders():
                     new_state
                 )
 
-                self.agent.replay_train()
+                loss = self.agent.replay_train()
+                if frame_counter % 500 == 0:
+                    losses.append(loss)
+
+            return losses
 
         except Exception as e:
             exc_type, exc_val, exc_trace = sys.exc_info()
@@ -233,7 +242,7 @@ class SpaceInvaders():
 
             return
 
-        plt.plot(xdata, ydata, 'ro')
+        plt.plot(xdata, ydata, 'r')
         plt.show()
 
 
@@ -249,9 +258,10 @@ if __name__ == '__main__':
     games_to_play = 10
 
     for i in range(max_frames // interval):
-        game.train(interval)
+        losses = []
         running_score = 0
         frames_survived = 0
+        losses = game.train(interval)
         for _ in range(games_to_play):
             game_scores = game.simulate_intelligent()
             running_score += game_scores[0]
@@ -273,6 +283,14 @@ if __name__ == '__main__':
             './data/{}_avgframes_survy_{}.npy'.format(game.name, args.type),
             (i + 1) * interval,
             frames_survived
+        )
+
+        # Save the model loss every interval number of frames
+        game.save_results(
+            './data/{}_lossx_{}.npy'.format(game.name, args.type),
+            './data/{}_lossy_{}.npy'.format(game.name, args.type),
+            [500 * j + i * interval for j in range(len(losses) - 1)],
+            losses
         )
 
     # Silence weird TF exception https://github.com/tensorflow/tensorflow/issues/3388

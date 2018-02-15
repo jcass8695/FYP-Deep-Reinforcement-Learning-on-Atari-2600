@@ -54,14 +54,16 @@ class DoubleDQN(NN):
             # In the future if we do <action> the Q value will now be influenced
             # by the max Q value of the next states best action (discounted future reward)
             ypred[0][self.output_shape.index(action)] = target
-            self.qmodel.fit(
+            loss = self.qmodel.fit(
                 np.expand_dims(state, 0),
                 ypred,
                 verbose=0
-            )
+            ).history['loss']
 
         if self.epsilon > self.epsilon_floor:
             self.epsilon *= self.epsilon_decay_rate
+
+        return loss
 
     def update_targetmodel(self):
         self.targetmodel.set_weights(self.qmodel.get_weights())
