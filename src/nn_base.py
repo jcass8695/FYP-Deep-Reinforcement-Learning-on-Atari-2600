@@ -41,7 +41,7 @@ class NN(ABC):
         model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(Flatten())
         model.add(Dense(512, activation='relu'))
-        model.add(Dense(len(self.output_shape), activation='linear'))
+        model.add(Dense(self.output_shape, activation='linear'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
 

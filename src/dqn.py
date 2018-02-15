@@ -1,18 +1,19 @@
-import sys
 from datetime import datetime
-from nn_base import NN
-from keras.models import load_model
 import numpy as np
+from keras.models import load_model
+from nn_base import NN
 from replaymemory import ReplayMemory
 
 
 class DeepQN(NN):
-    def __init__(self, input_shape, output_shape, replay_memory: ReplayMemory, game_name, load=False):
+    def __init__(self, input_shape, output_shape, action_list, replay_memory: ReplayMemory, game_name, load=False):
         super().__init__(input_shape, output_shape, replay_memory, game_name)
         if load:
             self.qmodel = self.load_model()
         else:
             self.qmodel = self.build_qmodel()
+
+        self.action_list = action_list
 
     def predict(self, state):
         qvalues = self.qmodel.predict(
@@ -24,31 +25,31 @@ class DeepQN(NN):
         # in the games set. This is required as the games action set may look
         # like this: [0, 1, 2, 3, 6, 17, 18]
         optimal_policy = np.argmax(qvalues)
-        optimal_action = self.output_shape[optimal_policy]
+        optimal_action = self.action_list[optimal_policy]
         if np.random.random() < self.epsilon:
-            optimal_action = np.random.choice(self.output_shape)
+            optimal_action = np.random.choice(self.action_list)
 
         return optimal_action
 
     def replay_train(self):
         ''' Playing Atari with Deep Reinforcement Learning (DeepMind, 2013), Algorithm 1 '''
 
+        loss = []
         minibatch = self.replay_memory.sample()
         for state, action, reward, done, next_state in minibatch:
             target = reward
             if not done:
                 # Future discounted reward = R + gamma * Q(ns, a)
-                target = (reward + self.gamma * np.amax(
-                    self.qmodel.predict(np.expand_dims(next_state, 0), batch_size=1)))
+                target = (reward + self.gamma * np.amax(self.qmodel.predict(np.expand_dims(next_state, 0), batch_size=1)))
 
             ypred = self.qmodel.predict(np.expand_dims(state, 0))
-            ypred[0][self.output_shape.index(action)] = target
-
-            loss = self.qmodel.fit(
-                np.expand_dims(state, 0),
-                ypred,
-                verbose=0
-            ).history['loss']
+            ypred[0][self.action_list.index(action)] = target
+            loss.append(
+                self.qmodel.fit(
+                    np.expand_dims(state, 0),
+                    ypred,
+                    verbose=0
+                ).history['loss'])
 
         if self.epsilon > self.epsilon_floor:
             self.epsilon *= self.epsilon_decay_rate
@@ -64,4 +65,4 @@ class DeepQN(NN):
             return load_model('./data/{}_qmodel.h5'.format(self.game_name))
         except OSError:
             print('Failed to load model for DQN')
-            sys.exit()
+            raise KeyboardInterrupt
