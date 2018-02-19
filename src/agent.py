@@ -5,6 +5,7 @@ import numpy as np
 from replaymemory import ReplayMemory
 from dqn import DeepQN
 from double_dqn import DoubleDQN
+from dueling_dqn import DuelingDQN
 
 
 class Agent():
@@ -33,6 +34,16 @@ class Agent():
             )
         elif agent_type == 'double':
             self.model = DoubleDQN(
+                model_input_shape,
+                model_output_shape,
+                self.action_list,
+                self.replay_memory,
+                self.name,
+                load_model
+            )
+
+        else:
+            self.model = DuelingDQN(
                 model_input_shape,
                 model_output_shape,
                 self.action_list,
