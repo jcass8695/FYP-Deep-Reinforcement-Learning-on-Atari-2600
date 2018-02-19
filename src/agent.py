@@ -23,7 +23,7 @@ class Agent():
         model_output_shape = len(self.action_list)
 
         if agent_type == 'dqn':
-            self.agent = DeepQN(
+            self.model = DeepQN(
                 model_input_shape,
                 model_output_shape,
                 self.action_list,
@@ -31,8 +31,8 @@ class Agent():
                 self.name,
                 load_model
             )
-        elif agent_type == 'ddqn':
-            self.agent = DoubleDQN(
+        elif agent_type == 'double':
+            self.model = DoubleDQN(
                 model_input_shape,
                 model_output_shape,
                 self.action_list,
@@ -49,7 +49,7 @@ class Agent():
         print('Model Output Shape: ', model_output_shape)
         print('Agent: ', agent_type)
 
-    def training(self, training_interval_frames):
+    def training(self, steps):
         '''
         Trains the agent for :training_interval_frames.
 
@@ -58,7 +58,6 @@ class Agent():
 
         loss = []
         total_reward = 0
-        frame_counter = 0
         alive_counter = 0
 
         # Initialize frame buffer
@@ -67,23 +66,21 @@ class Agent():
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
 
         try:
-            while frame_counter + 3 < training_interval_frames:
+            for step in range(steps):
                 gameover = False
                 intial_state = np.stack(self.frame_buffer, axis=-1)
-                action = self.agent.predict(intial_state)
+                action = self.model.predict_action(intial_state)
+                if step % 5000 == 0:
+                    self.model.save_model()
+
+                if hasattr(self.model, 'tau') and step % self.model.tau == 0:
+                    self.model.update_target_model()
 
                 # Play for 3 frames and stack 'em up
                 for _ in range(3):
-                    if frame_counter % 500 == 0:
-                        self.agent.save_model()
-
-                    if hasattr(self.agent, 'tau') and frame_counter % self.agent.tau == 0:
-                        self.agent.update_target_model()
-
                     reward = self.ale.act(action)
                     self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
                     total_reward += reward
-                    frame_counter += 1
                     alive_counter += 1
 
                 if self.ale.game_over():
@@ -91,7 +88,6 @@ class Agent():
                     total_reward = 0
                     alive_counter = 0
                     self.ale.reset_game()
-                    print('Gameover. F: {}, S: {}'.format(alive_counter, total_reward))
 
                 new_state = np.stack(self.frame_buffer, axis=-1)
                 self.replay_memory.add(
@@ -102,15 +98,16 @@ class Agent():
                     new_state
                 )
 
-                loss += self.agent.replay_train()
+                loss += self.model.replay_train()
+
         except OSError:
             raise KeyboardInterrupt
         except:
             print_exc()
-            self.agent.save_model()
+            self.model.save_model()
             raise KeyboardInterrupt
 
-        return np.mean(loss)
+        return np.mean(loss, axis=0)
 
     def simulate_random(self):
         print('Simulating game randomly')
@@ -129,7 +126,7 @@ class Agent():
         self.ale.reset_game()
         return total_reward, frames_survived
 
-    def simulate_intelligent(self):
+    def simulate_intelligent(self, evaluating=False):
         print('Simulating game intelligently')
         done = False
         total_reward = 0
@@ -139,7 +136,7 @@ class Agent():
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         while not done:
             state = np.stack(self.frame_buffer, axis=-1)
-            action = self.agent.predict(state)
+            action = self.model.predict_action(state, evaluating)
             total_reward += self.ale.act(action)
 
             # Pushes oldest frame out

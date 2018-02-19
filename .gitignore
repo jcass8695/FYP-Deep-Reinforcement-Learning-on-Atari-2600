@@ -1,6 +1,7 @@
 venv
 .vscode
 __pycache__
+*.pyc
 report.aux
 report.dvi
 report.log

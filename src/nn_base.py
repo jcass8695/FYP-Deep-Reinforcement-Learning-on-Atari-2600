@@ -10,9 +10,9 @@ class NN(ABC):
         # Model Parameters
         self.epsilon = 1.0  # Exploration rate
         self.epsilon_floor = 0.1  # Min Exploration rate
-        self.epsilon_decay_rate = 0.99
+        self.epsilon_decay_rate = 0.95
         self.gamma = 0.95  # Discount rate
-        self.learning_rate = 0.000025
+        self.learning_rate = 0.00025
         self.minibatch_size = 32
 
         self.replay_memory = replay_memory
@@ -46,7 +46,7 @@ class NN(ABC):
         return model
 
     @abstractmethod
-    def predict(self, state):
+    def predict_action(self, state, evaluating=False):
         pass
 
     @abstractmethod

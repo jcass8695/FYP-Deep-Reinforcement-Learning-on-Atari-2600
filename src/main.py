@@ -10,61 +10,33 @@ import util
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 parser = ArgumentParser()
-parser.add_argument(
-    'game',
-    help='Select which game to play',
-    type=str,
-    choices=['space_invaders', 'breakout']
-)
-parser.add_argument(
-    'type',
-    help='The type of Deep Learning to use',
-    type=str,
-    choices=['dqn', 'ddqn']
-)
-parser.add_argument(
-    'max_frames',
-    help='The max number of frames to train the model for',
-    type=int
-)
-parser.add_argument(
-    'interval_frames',
-    help='The number of frames to run in between game simulation testing',
-    type=int
-)
-parser.add_argument(
-    '-l',
-    '--load_model',
-    help='Load a previously trained model?',
-    action='store_true'
-)
-parser.add_argument(
-    '-d',
-    '--display',
-    help='Display video output of game?',
-    action='store_true'
-)
+parser.add_argument('game', help='Select which game to play', type=str, choices=['space_invaders', 'breakout'])
+parser.add_argument('deep_learning_mode', help='The type of Deep Learning to use', type=str, choices=['dqn', 'double', 'duel'])
+parser.add_argument('training_steps', default=25000, help='The number of steps (3 frames), to run during a training epoch?', type=int)
+parser.add_argument('training_epochs', default=20, help='The number of training epochs to run', type=int)
+parser.add_argument('evalutation_games', default=10, help='The number of games to evaluate on', type=int)
+parser.add_argument('-l', '--load_model', default=True, help='Use this flag to start with a new model', action='store_false')
+parser.add_argument('-d', '--display', help='Display video output of game?', action='store_true')
 args = parser.parse_args()
 
-if __name__ == '__main__':
+
+def main():
     agent = Agent(
         args.game,
-        args.type,
+        args.deep_learning_mode,
         display=args.display,
         load_model=args.load_model
     )
 
-    interval = args.interval_frames
-    max_frames = args.max_frames
-    games_to_play = 10
+    games_to_play = args.evalutation_games
     try:
-        for i in range(max_frames // interval):
+        for epoch in range(args.training_epochs):
             running_score = 0
             frames_survived = 0
-            print('Training Epoch: ', i + 1)
-            avg_loss = agent.training(interval)
+            print('Training Epoch: ', epoch + 1)
+            avg_loss = agent.training(args.training_steps)
             for _ in range(games_to_play):
-                agent_scores = agent.simulate_intelligent()
+                agent_scores = agent.simulate_intelligent(evaluating=True)
                 running_score += agent_scores[0]
                 frames_survived += agent_scores[1]
 
@@ -73,28 +45,43 @@ if __name__ == '__main__':
 
             # Save the Average Score and Frames survived over 10 agents for this interval
             util.save_results(
-                './data/{}_avgscorex_{}.npy'.format(agent.name, args.type),
-                './data/{}_avgscorey_{}.npy'.format(agent.name, args.type),
-                (i + 1) * interval,
+                './data/{1}/{0}_avgscorex_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                './data/{1}/{0}_avgscorey_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                (epoch + 1),
                 running_score
             )
 
             util.save_results(
-                './data/{}_avgframes_survx_{}.npy'.format(agent.name, args.type),
-                './data/{}_avgframes_survy_{}.npy'.format(agent.name, args.type),
-                (i + 1) * interval,
+                './data/{1}/{0}_avgframes_survx_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                './data/{1}/{0}_avgframes_survy_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                (epoch + 1),
                 frames_survived
             )
 
             # Save the average model loss over each training epoch
             # There are interval / 3 training epochs per interval
             util.save_results(
-                './data/{}_lossx_{}.npy'.format(agent.name, args.type),
-                './data/{}_lossy_{}.npy'.format(agent.name, args.type),
-                (i + 1),
+                './data/{1}/{0}_lossx_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                './data/{1}/{0}_lossy_{1}.npy'.format(agent.name, args.deep_learning_mode),
+                (epoch + 1),
                 avg_loss
             )
+
     except KeyboardInterrupt:
         print('Quitting...')
 
+
+def play_and_display_intelligent():
+    agent = Agent(
+        args.game,
+        args.deep_learning_mode,
+        display=True,
+        load_model=True
+    )
+    agent.simulate_intelligent(evaluating=True)
+
+
+if __name__ == '__main__':
+    main()
+    # play_and_display_intelligent()
     K.clear_session()
