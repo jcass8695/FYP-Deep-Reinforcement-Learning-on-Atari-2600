@@ -2,8 +2,9 @@ venv
 .vscode
 __pycache__
 *.pyc
-report.aux
-report.dvi
-report.log
 *.h5
 src/data/*
+report/tcd_template/*
+!report/tcd_template/*.tex
+!report/tcd_template/*.bib
+!report/tcd_template/*.pdf
