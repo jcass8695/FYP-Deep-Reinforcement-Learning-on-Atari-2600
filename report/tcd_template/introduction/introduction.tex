@@ -1,11 +1,27 @@
 \chapter{Introduction}
 
 \section{Motivation}
-Machine Learning (ML) and Artificial Intelligence (AI) in 2018 are subjects that are almost unique in their ability to permeate into nearly every sphere, community and space in today's society. From the research community to the business world and the public eye through extensive media coverage, ML is on everyone's mind. Prolific engineer and business man, CEO of Tesla Motors and SpaceX, Elon Musk has publicly shared his views on Artificial Intelligence AI being the biggest existential threat to humanity and calls for increased regulation. % CITATION NEEDED??
+Machine Learning (ML) and Artificial Intelligence (AI) in 2018 are subjects that are almost unique in their ability to permeate into nearly every sphere, community and space in today's society. From the research community to the business world and the public eye through extensive media coverage, ML is certainly becoming more and more of a de facto part of our everyday lives.
 
-Reinforcement Learning is a branch of ML, that perhaps receives less media attention but is nonetheless set to revolutionize the field of AI. 
+Reinforcement Learning (RL) is a branch of ML that perhaps receives less public attention but is nonetheless believed to be set to revolutionize the field of AI \cite{DBLP:journals/corr/abs-1708-05866}. Recent breakthroughs in the application of Deep Learning to RL algorithms has spawned the exciting research field of Deep Reinforcement Learning (DRL) which has produced to date unparalleled results in various AI domains, such as defeating the world champion Go player \cite{44806}.
+
+There are is a vast quantity of RL methods and algorithms, such as Monte-Carlo, Q-Learning, SARSA, Policy Search and more. More recently, the advent of DRL has brought about adaptations to existing algorithms to expand their use to multi-dimensional observations spaces such as pixel information, a notable example being Deep Q-Learning \cite{DBLP:journals/corr/MnihKSGAWR13}. It is easy to become overwhelmed with all of these offerings when exploring the RL space. The motivation behind this project is to demystify the state of the art of RL.
+
 \section{Objectives}
-
+The objectives of this project are threefold. 
+\begin{enumerate}
+	\item Research the history and state of the art of the RL domain.
+	\item Build a system on top of the Arcade Learning Environment (ALE) \cite{DBLP:journals/corr/abs-1207-4708} to evaluate the performance of three state of the art DRL algorithms across a series of metrics when applied to a selection of Atari 2600 video games. 
+	\item Carry out the experiments required to make these evaluations and draw conclusions from them.
+\end{enumerate}
+The aim is for the system to strive towards generality. The system is given no prior knowledge of how each game works and there is no change in the underlying architecture of the solution when applied to different games, all while maintaining a high level of performance. The system achieved this goal across two games, Space Invaders \cite{space-invaders} and Breakout \cite{breakout}, with sufficiently differing game mechanics (graphics, control mechanisms, scoring systems etc.) so as to somewhat qualify this claim. Due to the lengthy nature of training DL models, only two games were used. The algorithms used are Deep Q-Learning, Double Q-Learning and Dueling Q-Learning.
 \section{Research Methods}
 
 \section{Report Overview}
+\textbf{Chapter 2} gives some necessary background information. It will discuss the current state of the art of RL with particular interest in how it is being applied to video games, as well as the technologies and tools being used in research today and for this project.
+
+\textbf{Chapter 3} outlines the architecture of the system and the rationale behind certain design decisions.
+
+\textbf{Chapter 4} will discuss the components of the experiment evaluation. It will give a greater elaboration of the project's objectives, a description of the experimental setup, and a discussion of the results.
+
+\textbf{Chapter 5} closes the project with a conclusion of all that has been discussed, an outline of what has been achieved from both an objective and personal point of view and finally a suggestion for future work.
