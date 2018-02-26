@@ -9,11 +9,14 @@ from dueling_dqn import DuelingDQN
 
 
 class Agent():
-    def __init__(self, game, agent_type, display=False, load_model=False):
+    def __init__(self, game, agent_type, display=False, load_model=False, record=False):
         self.name = game
         self.ale = ALEInterface()
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
-        self.ale.setBool(str.encode('display_screen'), display)
+        self.ale.setBool(str.encode('display_screen'), display or record)
+        if record:
+            self.ale.setString(str.encode('record_screen_dir'), str.encode('./data/recordings/{}/{}/tmp/'.format(game, agent_type)))
+
         self.ale.loadROM(str.encode('./roms/{}.bin'.format(self.name)))
         self.action_list = list(self.ale.getMinimalActionSet())
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape

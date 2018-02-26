@@ -17,6 +17,7 @@ parser.add_argument('training_epochs', default=20, nargs='?', help='The number o
 parser.add_argument('evalutation_games', default=10, nargs='?', help='The number of games to evaluate on', type=int)
 parser.add_argument('-l', '--load_model', default=True, help='Use this flag to start with a new model', action='store_false')
 parser.add_argument('-d', '--display', help='Display video output of game?', action='store_true')
+parser.add_argument('-r', '--record', help='Record a simulation of the game?', action='store_true')
 args = parser.parse_args()
 
 
@@ -25,8 +26,13 @@ def main():
         args.game,
         args.deep_learning_mode,
         display=args.display,
-        load_model=args.load_model
+        load_model=args.load_model,
+        record=args.record
     )
+
+    if args.record:
+        util.record(agent, './data/recordings/{}/{}/'.format(args.game, args.deep_learning_mode))
+        return
 
     games_to_play = args.evalutation_games
     try:
