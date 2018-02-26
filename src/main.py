@@ -2,10 +2,16 @@
 
 import os
 from argparse import ArgumentParser
+from traceback import print_exc
+import tensorflow as tf
 import keras.backend as K
+from keras.backend.tensorflow_backend import set_session
 from agent import Agent
 import util
-from traceback import print_exc
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
