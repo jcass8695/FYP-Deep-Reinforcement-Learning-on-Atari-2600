@@ -9,10 +9,6 @@ from keras.backend.tensorflow_backend import set_session
 from agent import Agent
 import util
 
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-set_session(tf.Session(config=config))
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 parser = ArgumentParser()
@@ -74,7 +70,6 @@ def main():
             )
 
     except KeyboardInterrupt:
-        print_exc()
         print('Quitting...')
 
 

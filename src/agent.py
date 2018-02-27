@@ -82,8 +82,8 @@ class Agent():
         try:
             for step in range(steps):
                 gameover = False
-                intial_state = np.stack(self.frame_buffer, axis=-1)
-                action = self.model.predict_action(intial_state)
+                initial_state = np.stack(self.frame_buffer, axis=-1)
+                action = self.model.predict_action(initial_state)
                 if step % 5000 == 0:
                     self.model.save_model()
 
@@ -91,13 +91,15 @@ class Agent():
                     self.model.update_target_model()
 
                 # Play for 3 frames and stack 'em up
+                reward = 0
                 for _ in range(3):
-                    reward = self.ale.act(action)
+                    reward += self.ale.act(action)
                     self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
                     total_reward += reward
                     alive_counter += 1
 
                 if self.ale.game_over():
+                    reward = -10
                     gameover = True
                     total_reward = 0
                     alive_counter = 0
@@ -105,7 +107,7 @@ class Agent():
 
                 new_state = np.stack(self.frame_buffer, axis=-1)
                 self.replay_memory.add(
-                    intial_state,
+                    initial_state,
                     action,
                     reward,
                     gameover,
@@ -114,7 +116,7 @@ class Agent():
 
                 loss += self.model.replay_train()
 
-        except OSError:
+        except KeyboardInterrupt:
             raise KeyboardInterrupt
         except:
             print_exc()

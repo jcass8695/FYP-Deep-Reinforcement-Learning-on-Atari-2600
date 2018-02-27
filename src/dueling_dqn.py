@@ -80,8 +80,8 @@ class DuelingDQN(NN):
                 verbose=0
             ).history['loss'][0])
 
-        if self.epsilon > self.epsilon_floor:
-            self.epsilon *= self.epsilon_decay_rate
+            if self.epsilon > self.epsilon_floor:
+                self.epsilon -= self.epsilon_decay_rate
 
         return loss
 
@@ -91,12 +91,13 @@ class DuelingDQN(NN):
     def save_model(self):
         self.q_model.save('./data/duel/{}_qmodel_duel.h5'.format(self.game_name))
         self.target_model.save('./data/duel/{}_targetmodel_duel.h5'.format(self.game_name))
-        print('Saved models at ', datetime.now())
+        super().save_model()
 
     def load_model(self):
         try:
             qmodel = load_model('./data/duel/{}_qmodel_duel.h5'.format(self.game_name))
             tmodel = load_model('./data/duel/{}_targetmodel_duel.h5'.format(self.game_name))
+            super().load_model()
             return qmodel, tmodel
         except OSError:
             print('Failed to load models for DuelingDQN')

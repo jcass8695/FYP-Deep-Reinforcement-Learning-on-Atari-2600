@@ -44,18 +44,20 @@ class DeepQN(NN):
             ypred = self.qmodel.predict(np.expand_dims(state, 0))
             ypred[0][self.action_list.index(action)] = target
             loss.append(self.qmodel.fit(np.expand_dims(state, 0), ypred, verbose=0).history['loss'][0])
-        if self.epsilon > self.epsilon_floor:
-            self.epsilon *= self.epsilon_decay_rate
+            if self.epsilon > self.epsilon_floor:
+                self.epsilon -= self.epsilon_decay_rate
 
         return loss
 
     def save_model(self):
         self.qmodel.save('./data/dqn/{}_qmodel_dqn.h5'.format(self.game_name))
-        print('Saved model at ', datetime.now())
+        super().save_model()
 
     def load_model(self):
         try:
-            return load_model('./data/dqn/{}_qmodel_dqn.h5'.format(self.game_name))
+            model = load_model('./data/dqn/{}_qmodel_dqn.h5'.format(self.game_name))
+            super().load_model()
+            return model
         except OSError:
             print('Failed to load model for DQN')
             raise KeyboardInterrupt

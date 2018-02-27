@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from keras.models import Sequential
 from keras.layers import Conv2D, Dense, Flatten
 from keras.optimizers import Adam
@@ -10,8 +11,8 @@ class NN(ABC):
         # Model Parameters
         self.epsilon = 1.0  # Exploration rate
         self.epsilon_floor = 0.1  # Min Exploration rate
-        self.epsilon_decay_rate = 0.95
-        self.gamma = 0.95  # Discount rate
+        self.epsilon_decay_rate = (self.epsilon - self.epsilon_floor) / 1000000
+        self.gamma = 0.99  # Discount rate
         self.learning_rate = 0.00025
         self.minibatch_size = 32
 
@@ -55,8 +56,8 @@ class NN(ABC):
 
     @abstractmethod
     def save_model(self):
-        pass
+        print('Saved models at ', datetime.now())
 
     @abstractmethod
     def load_model(self):
-        pass
+        print('Model loaded')
