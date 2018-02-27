@@ -16,7 +16,8 @@ parser.add_argument('game', help='Select which game to play', type=str, choices=
 parser.add_argument('deep_learning_mode', help='The type of Deep Learning to use', type=str, choices=['dqn', 'double', 'duel'])
 parser.add_argument('training_steps', default=25000, nargs='?', help='The number of steps (3 frames), to run during a training epoch?', type=int)
 parser.add_argument('training_epochs', default=20, nargs='?', help='The number of training epochs to run', type=int)
-parser.add_argument('evalutation_games', default=10, nargs='?', help='The number of games to evaluate on', type=int)
+parser.add_argument('evaluation_games', default=10, nargs='?', help='The number of games to evaluate on', type=int)
+parser.add_argument('-t', '--test_run', help='Treat this run as a test run? Use when trying new hyperparams etc', action='store_true')
 parser.add_argument('-l', '--load_model', default=True, help='Use this flag to start with a new model', action='store_false')
 parser.add_argument('-d', '--display', help='Display video output of game?', action='store_true')
 parser.add_argument('-r', '--record', help='Record a simulation of the game?', action='store_true')
@@ -29,14 +30,15 @@ def main():
         args.deep_learning_mode,
         display=args.display,
         load_model=args.load_model,
-        record=args.record
+        record=args.record,
+        test=args.test_run
     )
 
     if args.record:
         util.record(agent, './data/recordings/{}/{}/'.format(args.game, args.deep_learning_mode))
         return
 
-    games_to_play = args.evalutation_games
+    games_to_play = args.evaluation_games
     try:
         for epoch in range(args.training_epochs):
             running_score = 0

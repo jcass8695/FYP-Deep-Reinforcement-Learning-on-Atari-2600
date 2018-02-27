@@ -9,7 +9,7 @@ from dueling_dqn import DuelingDQN
 
 
 class Agent():
-    def __init__(self, game, agent_type, display=False, load_model=False, record=False):
+    def __init__(self, game, agent_type, display, load_model, record, test):
         self.name = game
         self.ale = ALEInterface()
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
@@ -25,6 +25,9 @@ class Agent():
 
         model_input_shape = self.frame_shape + (3,)
         model_output_shape = len(self.action_list)
+
+        if test:
+            self.name += '_test'
 
         if agent_type == 'dqn':
             self.model = DeepQN(
