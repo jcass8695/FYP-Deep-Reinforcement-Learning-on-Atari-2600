@@ -16,7 +16,7 @@
 %   It will be used for the title page and for the embedded PDF information
 %----------------------------------------------------------------------------------------
 
-\newcommand{\thesistitle}{Utilizing Reinforcement Learning and Deep Neural Networks to teach Atari VideO Games to Play Themselves} % Your thesis title, this is used in the title and abstract
+\newcommand{\thesistitle}{An Investigation into Deep Reinforcement Learning} % Your thesis title, this is used in the title and abstract
 \newcommand{\degree}{BAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
 \newcommand{\typeofthesis}{Final Year Project} % dissertation, Final Year Project, report, etc.
 \newcommand{\authorname}{Jack Cassidy} % Your name, this is used in the title page and PDF stuff
@@ -26,7 +26,7 @@
 \newcommand{\school}{\href{http://www.scss.tcd.ie}{School of Computer Science and Statistics}} % Your school's name and URL, this is used in the title page
 
 %% Comment out the next line if you don't want a department to appear
-%\newcommand{\department}{\href{http://researchgroup.university.com}{Department Name}} % Your research group's name and URL, this is used in the title page
+%\newcommand{\department}{\href{http://recsearchgroup.university.com}{Department Name}} % Your research group's name and URL, this is used in the title page
 
 \AtBeginDocument{
 \hypersetup{pdftitle=\thesistitle} % Set the PDF's title to your title
@@ -51,7 +51,6 @@
 \usepackage{amsmath}
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
 \usepackage[pdftex]{graphicx}
-\usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=black]{hyperref}
 \usepackage{caption} % if no caption, no colon
 \usepackage{sfmath} %use sans-serif in the maths sections too
@@ -60,7 +59,9 @@
 \usepackage{enumerate} % fancy enumerations like (i) (ii) or (a) (b) and suchlike
 \usepackage{booktabs} % To thicken table lines
 \usepackage{fancyhdr}
-
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\graphicspath{{images/}}
 \pagestyle{plain} % Embrace simplicity!
 
 %% The Mechanical engineers require your name and ID on the top of every page.
@@ -154,7 +155,6 @@ Note that Roman mathematical symbols are typically in a serif font in italics.
 \mainmatter
 \input{introduction/introduction.tex}
 \input{background/background.tex}
-\input{project/project.tex}
 \input{evaluation/evaluation.tex}
 \input{conclusion/conclusion.tex}
 \bibliographystyle{unsrtnat}
