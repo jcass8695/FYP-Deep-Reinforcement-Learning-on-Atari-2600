@@ -5,7 +5,7 @@ __pycache__
 *.h5
 slurm-*.out
 src/data/*
-report/tcd_template/*
-!report/tcd_template/*.tex
-!report/tcd_template/*.bib
-!report/tcd_template/*.pdf
+report/*
+!report/*.tex
+!report/*.bib
+!report/*.pdf
