@@ -41,11 +41,36 @@
 \usepackage[english]{babel}
 
 %% Bibliographical stuff
-\usepackage[round,sort,comma,numbers]{natbib}
-
+\usepackage{natbib}
 %% Document size
 % include showframe as an option if you want to see the boxes
 \usepackage[a4paper,top=2.54cm,bottom=2.54cm,left=2.54cm,right=2.54cm,headheight=16pt]{geometry}
+\usepackage{listings}
+\usepackage{color}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+ 
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
 
 %% Useful packages
 \usepackage{amsmath}
@@ -63,7 +88,8 @@
 \usepackage{algpseudocode}
 \graphicspath{{images/}}
 \pagestyle{plain} % Embrace simplicity!
-
+\bibliographystyle{unsrtnat}
+\setcitestyle{authoryear}
 %% The Mechanical engineers require your name and ID on the top of every page.
 %% Uncomment the following block if you want your name and ID at the top of
 %% (almost) every page.
@@ -132,17 +158,17 @@ You should acknowledge any help that you have received (for example from technic
 \newpage
 \section*{\Huge{Nomenclature}}
 \begin{tabular}{lp{9cm}l}
-A&Area of the wing&$m^{2}$\\
-B\\
-C& Roman letters first, with capitals\ldots\\
-a&then lower case.\\
-b\\
-c\\
-$\Gamma$&Followed by Greek capitals\ldots\\
-$\alpha$&then lower case greek symbols.\\
-$\beta$\\
-$\epsilon$\\
-TLA&Finally, three letter acronyms and other abbreviations arranged alphabetically\\
+    A        & Area of the wing                                                               & $m^{2}$ \\
+    B                                                                                                   \\
+    C        & Roman letters first, with capitals\ldots                                                 \\
+    a        & then lower case.                                                                         \\
+    b                                                                                                   \\
+    c                                                                                                   \\
+    $\Gamma$ & Followed by Greek capitals\ldots                                                         \\
+    $\alpha$ & then lower case greek symbols.                                                           \\
+    $\beta$                                                                                             \\
+    $\epsilon$                                                                                          \\
+    TLA      & Finally, three letter acronyms and other abbreviations arranged alphabetically           \\
 \end{tabular}
 \vspace{2cm}
 
@@ -155,9 +181,9 @@ Note that Roman mathematical symbols are typically in a serif font in italics.
 \mainmatter
 \input{introduction/introduction.tex}
 \input{background/background.tex}
+\input{soa/soa.tex}
 \input{evaluation/evaluation.tex}
 \input{conclusion/conclusion.tex}
-\bibliographystyle{unsrtnat}
 \bibliography{bibs/sample}
 \appendix
 \renewcommand{\thechapter}{A\arabic{chapter}}
