@@ -102,13 +102,16 @@ class Agent():
                     alive_counter += 1
 
                 if self.ale.game_over():
-                    reward = -10
                     gameover = True
+                    reward = -1
                     total_reward = 0
                     alive_counter = 0
                     self.ale.reset_game()
 
                 new_state = np.stack(self.frame_buffer, axis=-1)
+
+                # Experiment with clipping rewards for stability purposes
+                reward = np.clip(reward, -1, 1)
                 self.replay_memory.add(
                     initial_state,
                     action,
@@ -134,8 +137,12 @@ class Agent():
         total_reward = 0
         while not done:
             action = np.random.choice(self.ale.getMinimalActionSet())
-            total_reward += self.ale.act(action)
+            reward = self.ale.act(action)
+            if reward != 0:
+                print(reward)
+            total_reward += reward
             if self.ale.game_over():
+                print('Ending reward:', reward)
                 done = True
 
         frames_survived = self.ale.getEpisodeFrameNumber()
@@ -156,11 +163,15 @@ class Agent():
         while not done:
             state = np.stack(self.frame_buffer, axis=-1)
             action = self.model.predict_action(state, evaluating)
-            total_reward += self.ale.act(action)
+            reward = self.ale.act(action)
+            total_reward += reward
+            if reward != 0:
+                print(reward)
 
             # Pushes oldest frame out
             self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
             if self.ale.game_over():
+                print('Ending reward: ', reward)
                 done = True
 
         frames_survived = self.ale.getEpisodeFrameNumber()

@@ -5,8 +5,6 @@ from datetime import datetime
 from subprocess import run, PIPE
 import numpy as np
 from matplotlib import pyplot as plt
-from ale_python_interface import ALEInterface
-from agent import Agent
 
 
 def save_results(path, data):
@@ -28,7 +26,7 @@ def save_results(path, data):
 
 
 def print_results(game, mode):
-    if game not in ['space_invaders', 'breakout']:
+    if game not in ['space_invaders', 'breakout', 'space_invaders_test', 'breakout_test']:
         print('Invalid game name: ', game)
         return
 
@@ -61,7 +59,7 @@ def plot_results(game, mode, feature):
         raise KeyboardInterrupt
 
 
-def record(agent: Agent, path: str):
+def record(agent, path):
     name = input('What should this recording be called? ')
     agent.ale.reset_game()
     try:

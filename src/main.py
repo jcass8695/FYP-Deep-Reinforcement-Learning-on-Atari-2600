@@ -80,12 +80,27 @@ def play_and_display_intelligent():
         args.game,
         args.deep_learning_mode,
         display=True,
-        load_model=True
+        load_model=True,
+        record=False,
+        test=args.test_run
     )
     agent.simulate_intelligent(evaluating=True)
 
 
+def play_randomly():
+    agent = Agent(
+        args.game,
+        args.deep_learning_mode,
+        display=False,
+        load_model=False,
+        record=False,
+        test=args.test_run
+    )
+    agent.simulate_random()
+
+
 if __name__ == '__main__':
-    main()
-    # play_and_display_intelligent()
+    # main()
+    play_and_display_intelligent()
+    # play_randomly()
     K.clear_session()
