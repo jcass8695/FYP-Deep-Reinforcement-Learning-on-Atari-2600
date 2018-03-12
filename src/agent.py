@@ -74,8 +74,6 @@ class Agent():
         '''
 
         loss = []
-        total_reward = 0
-        alive_counter = 0
 
         # Initialize frame buffer
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
@@ -94,22 +92,23 @@ class Agent():
                     self.model.update_target_model()
 
                 # Play for 3 frames and stack 'em up
-                reward = 0
+                lives_before = self.ale.lives()
                 for _ in range(3):
-                    reward += self.ale.act(action)
+                    reward = self.ale.act(action)
                     self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
-                    total_reward += reward
-                    alive_counter += 1
+
+                lives_after = self.ale.lives()
+                if lives_after < lives_before:
+                    reward = -1
 
                 if self.ale.game_over():
                     gameover = True
                     reward = -1
-                    total_reward = 0
-                    alive_counter = 0
                     self.ale.reset_game()
 
                 new_state = np.stack(self.frame_buffer, axis=-1)
-
+                if reward != 0:
+                    print('r: ', reward)
                 # Experiment with clipping rewards for stability purposes
                 reward = np.clip(reward, -1, 1)
                 self.replay_memory.add(
@@ -138,12 +137,14 @@ class Agent():
         while not done:
             action = np.random.choice(self.ale.getMinimalActionSet())
             reward = self.ale.act(action)
-            if reward != 0:
-                print(reward)
             total_reward += reward
             if self.ale.game_over():
-                print('Ending reward:', reward)
+                reward = -1
                 done = True
+
+            reward = np.clip(reward, -1, 1)
+            if reward != 0:
+                print(reward)
 
         frames_survived = self.ale.getEpisodeFrameNumber()
         print('Game Over')
@@ -155,7 +156,7 @@ class Agent():
     def simulate_intelligent(self, evaluating=False):
         print('Simulating game intelligently')
         done = False
-        total_reward = 0
+        total_score = 0
 
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
@@ -163,20 +164,18 @@ class Agent():
         while not done:
             state = np.stack(self.frame_buffer, axis=-1)
             action = self.model.predict_action(state, evaluating)
-            reward = self.ale.act(action)
-            total_reward += reward
-            if reward != 0:
-                print(reward)
+
+            # Remember, ale.act returns the increase in game score with this action
+            total_score += self.ale.act(action)
 
             # Pushes oldest frame out
             self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
             if self.ale.game_over():
-                print('Ending reward: ', reward)
                 done = True
 
         frames_survived = self.ale.getEpisodeFrameNumber()
         print('Game Over')
         print('Frames Survived: ', frames_survived)
-        print('Score: ', total_reward)
+        print('Score: ', total_score)
         self.ale.reset_game()
-        return total_reward, frames_survived
+        return total_score, frames_survived
