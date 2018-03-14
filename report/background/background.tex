@@ -49,13 +49,9 @@ surrounding the feat, as IBM denied any chance of a replay after Kasparov claime
 by actively programming moves into Deep Blue as the game was in play. \paragraph{}
 
 In more recent times, British AI research company DeepMind published the paper (\cite{deepmind1}) in which they achieved far and above
-human-level performance on a selection of 52 Atari2600 games with their Deep Q-Network algorithm.
+human-level performance on a selection of 52 Atari 2600 games with their Deep Q-Network algorithm.
 DeepMind have since applied their techniques to modern, real time, strategy game StarCraft2
-(\cite{starcraft}). This application was most impressive, as StarCraft2 is a game of imperfect
-information. This means that not all aspects of the game are given to the player. In the context of
-StarCraft2, the game map is not completely observable, the two players of the game cannot see what
-the other is doing. All other exploits into the application of ML in video games up to then had been
-on games of perfect information.
+(\cite{starcraft}), which we will discuss in the State of the Art chapter. 
 
 \section{Reinforcement Learning}
 \subsection{Introduction}
@@ -137,13 +133,14 @@ choose all subsequent $a_t = \pi(s_t)$ thereafter. As the agent explores all sta
 and experiments with different actions, the corresponding Q-values are saved and updated in a data
 structure, hence an optimum policy can be derived by finding the optimum Q-values $Q^*(s, a)$ for all states after a predetermined number of iterations or until the policy is 'good enough'. The update step for a Q-Value is defined as:
 
-\begin{align}
+\begin{gather}
     \label{equ:QUpdate}
-    Q(s_t, a_t) \leftarrow (1-\alpha)Q(s_t, a_t) + \alpha(r_t + \gamma max_aQ(s_{t+1}, a))
-\end{align}
+    Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha(r_t + \gamma max_aQ(s_{t+1}, a) - Q(s_t, a_t)) \\
+    \label{equ:TDE}
+    \delta = r_t + \gamma max_aQ(s_{t+1}, a) - Q(s_t, a_t)
+\end{gather}
 
-Where $\alpha$ is a hyperparameter called the \textit{learning rate} chosen in the range $(0, 1)$. As $t \rightarrow \infty, Q_t \rightarrow Q^*_t$, we converge on an optimum solution. The data structure used to store the agent's experiences can be referred to as the Q-Matrix. It is a
-$|S| x |A|$ sized matrix, that is the total number of states x total number of available actions.
+We define $\delta$ as the Temporal Difference Error (TDE). It is an error function that is used in many RL algorithms. $\alpha$ is a hyperparameter called the \textit{learning rate} chosen in the range $(0, 1)$. As $t \rightarrow \infty, Q_t \rightarrow Q^*_t$, we converge on an optimum solution. The data structure used to store the agent's experiences can be referred to as the Q-Matrix. It is a $|S| x |A|$ sized matrix, that is the total number of states x total number of available actions.
 
 \begin{figure}[h]
     \includegraphics[scale=0.75]{q_matrix}
@@ -240,98 +237,6 @@ This architecture was named the Deep Q-network. This breakthrough successfully r
     \caption{The original Deep Q-network Architecture}
 \end{figure}
 
-\subsection{Improvements to Deep Q-Network}
-At the time, this breakthrough was the state of the art. Since then, many improvements and adaptations have been made on this model, by DeepMind and other research groups. Such examples include the Double Q-Network adaptation (\cite{doubleq}) and the Dueling Q-network architecture (\cite{dueling}). Experience replay and target networks were two techniques added to the original architecture by DeepMind to add more stability to the learning process. \paragraph{}
-
-Instead of learning from the immediately previous experience when training the network, a large memory of past experiences are stored as tuples of $(s_t, a_t, r_{t}, s_{t+1}, term)$, where $term$ is a boolean indicating if this state transition was terminal (a gameover). The network is then trained from a random sampling of past experiences from this replay memory. It was found to greatly reduce the number of interactions the agent needed to have with the environment. However, this technique \textit{is somewhat} limited as there is no way to differentiate important experiences from unimportant ones. In the State of the Art chapter we will discuss an optimization to experience replay that mitigates this drawback (\cite{human}). \paragraph{}
-
-The target network is a secondary network $\hat{Q}$ cloned from the online Q-network $Q$, that is used to predict the targets $y_i$ when training $Q$. The weights of $\hat{Q}$ are cloned from $Q$ every $\tau$ training steps. This modification makes the algorithm more stable, as an increase to $Q(s_t, a_t)$ was often found to also increase $Q(s_{t+1}, a)$ for all $a$, thus also increasing the targets $y_i$. This can create a diverging solution in some cases. Freezing the weights makes the updates to $Q$ and the targets $y$ further apart, decreasing the likelihood of divergence (\cite{human}). \paragraph{}
-
-\begin{algorithm}
-    \caption{Deep Q-Network Algorithm with Experience Replay}\label{alg:DQN}
-    \begin{algorithmic}[1]
-        \State Initialize replay memory $D$ to capacity $N$
-        \State Initialize $Q$ with random weights $\theta$
-        \For{episode = 1, M}
-        \State Initialize arbitrary first sequence of frames for initial state
-        \For{t = 1, T}
-        \State With probability $\epsilon$ select a random action $a_t$, otherwise select $a_t = max_a Q(s_t, a)$
-        \State Execute action $a_t$ and observe reward $r_t$ and state $s_{t+1}$
-        \State Store state transition $(s_t, a_t, r_t, s_{t+1}, term)$ in $D$
-        \State Sample random mini batch $(s_i, a_i, r_i, s_{i + 1}, term)$ from $D$
-        \If{$term = true$}
-        \State Set $y_i = r_i$
-        \Else
-        \State Set $y_i = r_i + \gamma max_a Q(s_{i+1}, a)$ \label{DQN:target}
-        \EndIf
-        \EndFor
-        \State Perform a gradient descent step on $(y_i - Q(s_i, a_i))^2$
-        \EndFor
-    \end{algorithmic}
-\end{algorithm}
-
-\subsection{Double Deep Q-Network}
-In the standard Deep Q-Network algorithm \algref{alg:DQN}{DQN:target}, when training we use the same Q-Value to select and evaluate an action for the target $y$. This can result in overoptimistic Q-value estimates over time, leading to sub-optimal policies as certain actions are erroneously favoured over others due to early over estimations. Double Deep Q-Network (\cite{doubleq}) separates action selection from action evaluation in the target $y$. The online network $Q$ still estimates the best action to take based on a max operator on it's predicted vector of Q-values. We reuse the target network to then evaluate the effectiveness of this action. The updated target equation is given as:
-
-\begin{align}
-    \label{equ:DubTarget}
-    y_i = r + \gamma \hat{Q}(s_{i+1}, argmax_aQ(s_{i+1}, a))
-\end{align}
-
-As with the original target network optimisation, the weights from $Q$ are copied to $\hat{Q}$
-every $\tau$ training updates.
-
-\begin{algorithm}
-    \caption{Double Deep Q-Network Algorithm} \label{alg:DDQN}
-    \begin{algorithmic}[1]
-        \State Initialize replay memory $D$ to capacity $N$
-        \State Initialize $Q$ with random weights $\theta$
-        \State Initialize $\hat{Q}$ with weights $\theta^-$ cloned from $\theta$
-        \For{episode = 1, M}
-        \State Initialize arbitrary first sequence of frames for initial state
-        \For{t = 1, T}
-        \State With probability $\epsilon$ select a random action $a_t$, otherwise select $a_t = max_a Q(s_t, a)$
-        \State Execute action $a_t$ and observe reward $r_t$ and state $s_{t+1}$
-        \State Store state transition $(s_t, a_t, r_t, s_{t+1}, term)$ in $D$
-        \State Sample random mini batch $(s_i, a_i, r_i, s_{i + 1}, term)$ from $D$
-        \If{$term = true$}
-        \State Set $y_i = r_i$
-        \Else
-        \State Set $y_i = r_i + \gamma \hat{Q}(s_{i+1}, argmax_aQ(s_{i+1}, a))$ \label{DDQN:target}
-        \EndIf
-        \EndFor
-        \State Perform a gradient descent step on $(y_i - Q(s_i, a_i))^2$
-        \If{$t$ is a multiple of $\tau$}
-        $\theta^- \leftarrow \theta$
-        \EndIf
-        \EndFor
-    \end{algorithmic}
-\end{algorithm}
-
-\subsection{Dueling Q-Network Architecture}
-The Dueling Q-Network Architecture is an improvement on the original Deep Q-Network's single stream, convolutional network into a single fully connected layer network architecture. It \textit{does not} provide any change to the underlying algorithms at work. For this reason, it can be applied to other RL algorithms that use Q-Values. The single stream fully connected layer is separated into two streams. One stream estimates the state value functions $V(s)$ and the other estimates a new function, the action advantage function $A(s, a)$.
-
-\begin{align}
-    \label{eq:adv}
-    A(s, a) =  Q(s, a) - V(s)
-\end{align}
-
-The two streams are aggregated at the final layer to output the $Q(s, a)$. The convolutional network in the upper half remains unchanged. $V(s)$ and $Q(s, a)$ we have explained the intuition for previously. The action advantage function $A(s, a)$ gives a relative importance of each action in a given state. Hence, the dueling architecture can learn which states are valuable separately from the effect of each action in each state. \paragraph{}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.35]{dueling_q}
-    \caption{The original Deep Q-Network (above) vs. Dueling Q-Network (below) architecture}
-\end{figure}
-
-The aggregating layer is not a simple sum of $A(s, a)$ and $V(s)$. It was found that equation \ref{eq:adv} ``is unidentifiable in the sense that given $Q$ we cannot recover $V$ and $A$ uniquely'' \cite{dueling}. Instead we use a slightly augmented version:
-
-\begin{align}
-    Q(s, a) = V(s, a) + (A(s, a) - max_{a'} A(s, a'))
-\end{align}
-
-The Dueling Q-Network architecture represents the current state of the art model architecture for DRL in the video game test bed today.
-
 \section{RL Research Tools for the Video Game Test Bed}
 \subsection{OpenAI Gym}
 OpenAI Gym is a high-level Python API that provides a suite of environments on which to perform RL research (\cite{openaigym}). These environments range from physics problems such as balancing a pole, to a small selection of Atari 2600 video games, to robotics tasks like teaching a robot to walk or landing a space ship on a planet safely.
@@ -370,23 +275,10 @@ ALE provides much more functionality than OpenAI Gym without being much more com
     \item Query at any time if the game has terminated (game over), not just after a state transition as in OpenAI Gym
     \item Change difficulty mode, if the specified game supported it on the original Atari 2600.
     \item Video and sound recording
-    \item The internal state of the 128-byte RAM of the game. 
+    \item The internal state of the 128-byte RAM of the game.
     \item Load and save states.
-\end{itemize} 
+\end{itemize}
 
 As well as all of the expected features such as processing an action in the environment and returning a reward. By default, the returned reward is the difference in game score during the state transition caused by an action. \paragraph{}
 
 ALE provides many more practical features than OpenAI Gym, however there are some drawbacks to using ALE. The researcher is restricted to using just Atari 2600 environments, which means an inherently high-dimensional problem as the agent will more than likely represent a state as an array of pixels. OpenAI Gym provides a lot more lower-dimensional environments, such as the physics based CartPole where the state is represented as a much shorter tuple of \texttt{(cart position, cart velocity, pole angle, pole velocity)}.
-
-\subsection{Performance Metrics}
-The most popular, general performance metrics used in (\cite{deepmind1}), (\cite{doubleq}), (\cite{dueling}) and (\cite{human}) are listed below. These metrics are gathered by running a predetermined number of evaluation games, whereby the agent selects it's action from the trained policy. The evaluation runs are held after a regular number of training updates. These intervals vary between different papers. Most are in the magnitude of $10^6$.
-
-\begin{itemize}
-    \item Average reward/score
-    \item Average Q-Value
-    \item Average frames survived for
-    \item Percentage improvement in score over greater of human/baseline
-    \item Model loss in the case of a Deep-Learning model
-\end{itemize}
-
-Average reward and average frames survived for are an interesting duo of performance metrics. Together, they can give a better understanding of \textit{what} the agent is learning to do. In some games, the score might be dependant on surviving for a long time, for others it might be to shoot as many 'things' as possible and rack up points. For this project, we use average reward, average frames survived and model loss to base our comparisons on.

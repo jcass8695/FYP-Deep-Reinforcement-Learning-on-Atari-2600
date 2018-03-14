@@ -1,0 +1,203 @@
+\chapter{State of the Art}
+The current state of the field of RL is vast. More and more it is being utilized as the next step towards more efficient and intelligent ML systems (\cite{survey-drl}). This section will be divided into two discussions. The first will give a basic survey of the types of different applications of RL today. The second section will discuss the state of the art for RL research within the video game test bed.
+
+\section{Robotics}
+Robotics is a field very suited to RL techniques. It closely follows the basic definition of an RL task involving an agent exploring an environment through trial and error to maximize some reward function. Although it is well suited, there are many challenges that face RL techniques in robotics. The recent work of (\cite{a3c}), the A3C algorithm (see subsequent section for an explanation of the algorithm), is an example of state of the art RL techniques addressing one of the most pressing issues for RL in robotics: the 'curse of dimensionality' with respect to the navigation of a robot through a complex environment. Coincidentally A3C has provided state of the art results in video game AI agent research results. \paragraph{}
+
+The representation of state in robotics is often imperfect and noisy due to it's high levels of dimensionality and the resolution reduction of continuous physical measurements to discrete digital computer/controller representations. A mechanical representation of state such as robot limb position, or any other physical measurement can have many degrees of freedom (DOF). In addition to state complexity, the action space in contrast to the Atari domain which is fixed and simple, can reach high dimensionality due to multiple DOF and the hardware complexity of most modern robots, where there can be a large number of motors and other components working in tandem, each adding to the complexity of the total action space. \paragraph{}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.75]{dof}
+    \caption{Example DOF figure of a robotic arm}
+\end{figure}
+
+With respect to a robot that navigates through a complex, partially observable environment with dynamic obstacles, in addition to the high dimensional state size, the memory efficiency of remembering past experiences becomes a pressing issue as it is of utmost importance for a robot learning to navigate to be able to utilize past experiences to map its surroundings. A3C abandons experience replay in favour of a stacked Long Short Term Memory (LSTM) network running multiple agents that are exploring the environment in parallel, providing a wider range of experiences that scales with the number of parallel agents employed. This dramatically increased the memory efficiency of the implementation.
+
+\section{Natural Language Processing}
+Deep learning, more so than DRL, has been permeating into the field of Natural Language Processing (NLP). There have been many exciting revelations in NLP in recent years that interface with users regularly, such as chat bots, text prediction and machine translation (MT) etc. \paragraph{}
+
+MT is simply defined as the sub-field of computer linguistics that investigates the use of software to translate text or speech from one language to another. The ability for systems to recognize full phrases and sentences and translate those accurately instead of simply substituting words is what defines good MT systems from others, as the latter will almost always be rife with grammatical errors in the target language. Neural Machine Translation (NMT) introduces deep learning into the MT sphere, to further the ability to recognize phrases and sentences. Recurrent neural networks (RNNs) are popular in NTM systems, owing to their internal memory which is suited to picking out patterns and phrases, as opposed to fully feed forward networks with no concept of internal remembrance. The basic architecture involves two RNN's, an encoding layer at the input sentence and a decoding layer at the translated sentence output. \paragraph{}
+
+The current state of the art in NMT is Google's Neural Machine Translation (GNMT) system \cite{wu2016google}. It tackles the issues of speed of translation/inference, robustness in the face of translating sentences containing 'rare' words and incomplete translations. These are three issues that have \textit{severely} hampered the deployment of MT systems into production. The network architecture consists of an LSTM encoder with 8 layers and the same at the output. The residual connections between layers in the encoder and decoder, to introduce parallelism, and low-precision arithmetic during inference computations are used to tackle the speed of translation problem. Breaking up words into sub-word units or 'wordpieces' reduces the chances of finding 'rare' words by translating on sections rather than full words, but provides a balance of compute time over single character scale translation. Finally, a beam search technique to tackle the issue of incomplete translations. With these three features, GNMT has proved itself as a state of the art for MT and is in fact used in production at Google today.
+
+\section{Deep Reinforcement Learning}
+\subsection{Improvements to Deep Q-Network}
+In 2013, the DQN breakthrough was the state of the art. Since then, many improvements and adaptations have been made on this model, by DeepMind and other research groups. Such examples include the Double Q-Network adaptation (\cite{doubleq}) and the Dueling Q-network architecture (\cite{dueling}). Experience replay and target networks were two techniques added to the original architecture by DeepMind to add more stability to the learning process. Prioritized experience replay was then built on from experienced replay providing even better performance.
+
+\subsubsection{Experience Replay and Target Network}
+Instead of learning from the immediately previous experience when training the network, a large memory of past experiences are stored as tuples of $(s_t, a_t, r_{t}, s_{t+1}, term)$, where $term$ is a boolean indicating if this state transition was terminal (a gameover). The network is then trained from a random sampling of past experiences from this replay memory. It was found to greatly reduce the number of interactions the agent needed to have with the environment. However, this technique \textit{is somewhat} limited as there is no way to differentiate important experiences from unimportant ones. \paragraph{}
+
+The target network is a secondary network $\hat{Q}$ cloned from the online Q-network $Q$, that is used to predict the targets $y_i$ when training $Q$. The weights of $\hat{Q}$ are cloned from $Q$ every $\tau$ training steps. This modification makes the algorithm more stable, as an increase to $Q(s_t, a_t)$ was often found to also increase $Q(s_{t+1}, a)$ for all $a$, thus also increasing the targets $y_i$. This can create a diverging solution in some cases. Freezing the weights makes the updates to $Q$ and the targets $y$ further apart, decreasing the likelihood of divergence (\cite{human}). \paragraph{}
+
+\begin{algorithm}
+    \caption{Deep Q-Network Algorithm with Experience Replay and a Target Network}\label{alg:DQN}
+    \begin{algorithmic}[1]
+        \State Initialize replay memory $D$ to capacity $N$
+        \State Initialize $Q$ with random weights $\theta$
+        \State Initialize $\hat{Q}$ with weights $\theta^-$ cloned from $\theta$
+        \For{episode = 1, M}
+        \State Initialize arbitrary first sequence of frames for initial state
+        \For{t = 1, T}
+        \State With probability $\epsilon$ select a random action $a_t$, otherwise select $a_t = max_a Q(s_t, a)$
+        \State Execute action $a_t$ and observe reward $r_t$ and state $s_{t+1}$
+        \State Store state transition $(s_t, a_t, r_t, s_{t+1}, term)$ in $D$
+        \State Sample random mini batch $(s_i, a_i, r_i, s_{i + 1}, term)$ from $D$
+        \If{$term = true$}
+        \State Set $y_i = r_i$
+        \Else
+        \State Set $y_i = r_i + \gamma max_a Q(s_{i+1}, a)$ \label{DQN:target}
+        \EndIf
+        \EndFor
+        \State Perform a gradient descent step on $(y_i - Q(s_i, a_i))^2$
+        \If{$t$ is a multiple of $\tau$}
+        $\theta^- \leftarrow \theta$
+        \EndIf
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Double Deep Q-Network}
+In the standard Deep Q-Network algorithm \algref{alg:DQN}{DQN:target}, when training we use the same Q-Value to select and evaluate an action for the target $y$. This can result in overoptimistic Q-value estimates over time, leading to sub-optimal policies as certain actions are erroneously favoured over others due to early over estimations. Double Deep Q-Network (\cite{doubleq}) separates action selection from action evaluation in the target $y$. The online network $Q$ still estimates the best action to take based on a max operator on it's predicted vector of Q-values. We reuse the target network to then evaluate the effectiveness of this action. The updated target equation is given as:
+
+\begin{align}
+    \label{equ:DubTarget}
+    y_i = r + \gamma \hat{Q}(s_{i+1}, argmax_aQ(s_{i+1}, a))
+\end{align}
+
+As with the original target network optimisation, the weights from $Q$ are copied to $\hat{Q}$
+every $\tau$ training updates.
+
+\begin{algorithm}
+    \caption{Double Deep Q-Network Algorithm} \label{alg:DDQN}
+    \begin{algorithmic}[1]
+        \State Initialize replay memory $D$ to capacity $N$
+        \State Initialize $Q$ with random weights $\theta$
+        \State Initialize $\hat{Q}$ with weights $\theta^-$ cloned from $\theta$
+        \For{episode = 1, M}
+        \State Initialize arbitrary first sequence of frames for initial state
+        \For{t = 1, T}
+        \State With probability $\epsilon$ select a random action $a_t$, otherwise select $a_t = max_a Q(s_t, a)$
+        \State Execute action $a_t$ and observe reward $r_t$ and state $s_{t+1}$
+        \State Store state transition $(s_t, a_t, r_t, s_{t+1}, term)$ in $D$
+        \State Sample random mini batch $(s_i, a_i, r_i, s_{i + 1}, term)$ from $D$
+        \If{$term = true$}
+        \State Set $y_i = r_i$
+        \Else
+        \State Set $y_i = r_i + \gamma \hat{Q}(s_{i+1}, argmax_aQ(s_{i+1}, a))$ \label{DDQN:target}
+        \EndIf
+        \EndFor
+        \State Perform a gradient descent step on $(y_i - Q(s_i, a_i))^2$
+        \If{$t$ is a multiple of $\tau$}
+        $\theta^- \leftarrow \theta$
+        \EndIf
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Current State of the Art for Deep Q-Network}
+\subsubsection{Dueling Q-Network Architecture}
+The Dueling Q-Network Architecture is an improvement on the original Deep Q-Network's single stream, convolutional network into a single fully connected layer network architecture. It \textit{does not} provide any change to the underlying algorithms at work. For this reason, it can be applied to other RL algorithms that use Q-Values. The single stream fully connected layer is separated into two streams. One stream estimates the state value functions $V(s)$ and the other estimates a new function, the action advantage function $A(s, a)$.
+
+\begin{align}
+    \label{eq:adv}
+    A(s, a) =  Q(s, a) - V(s)
+\end{align}
+
+The two streams are aggregated at the final layer to output $Q(s, a)$. The convolutional network in the upper half remains unchanged. $V(s)$ and $Q(s, a)$ we have explained the intuition for previously. The action advantage function $A(s, a)$ gives a relative importance of each action in a given state. Hence, the dueling architecture can learn which states are valuable separately from the effect of each action in each state. \paragraph{}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{dueling_q}
+    \caption{The original Deep Q-Network (above) vs. Dueling Q-Network (below) architecture}
+\end{figure}
+
+The aggregating layer is not a simple sum of $A(s, a)$ and $V(s)$. It was found that equation \ref{eq:adv} ``is unidentifiable in the sense that given $Q$ we cannot recover $V$ and $A$ uniquely'' (\cite{dueling}). Instead we use a slightly augmented version:
+
+\begin{align}
+    Q(s, a) = V(s, a) + (A(s, a) - max_{a'} A(s, a'))
+\end{align}
+
+\subsubsection{Prioritized Experience Replay}
+In regular experience replay, transitions are sampled randomly and uniformly from the replay memory collection, with no regard to which transitions the agent might learn more from at any given time. Prioritized experience replay was first suggested by (\cite{prioritized}) as a way to improve the efficiency of regular experience replay by replaying more important transitions more frequently. It is difficult to quantify the importance, or potential learning progress an agent can expect by replaying a transition, hence a reasonable estimation can be made to approximate it. (\cite{prioritized}) approximate learning progress with the magnitude of the TDE of a transition, a suitable value as many RL algorithms use TDE, including Q-Learning. Along with the tuple $(s_t, a_t, r_{t}, s_{t+1}, term)$, the TDE, $\delta$ is now also stored with each state transition. The TDE of each transition is updated after being sampled to prevent the highest rank transition from always being sampled. \paragraph{}
+
+A greedy prioritization, where the maximum TDE experiences are always sampled is flawed. Transitions that first occur with a low TDE will effectively never be revisited. The same small set of experiences are repeatedly sampled, with such a lack of diversity the model is likely to overfit. To overcome this (\cite{prioritized}) propose a stochastic prioritization policy with two variants.
+\begin{gather}
+    \label{equ:prob_exp}
+    P(i) = \frac{p_i^\alpha}{\sum_kp_k^\alpha} \\
+    \label{equ:priority1}
+    p(i) = |\delta_i| + \epsilon \\
+    \label{equ:priority2}
+    p(i) = \frac{1}{rank(i)}
+\end{gather}
+Where $P(i)$ is the probability of sampling transition $i$, $k$ is the number of transitions in the replay memory, $p(i)$ is the priority of transition $i$ and it's two variants are shown. Variant 1 is similar to a greedy prioritization, but $\epsilon$ prevents 0 TDE transitions from never being sampled. Variant 2 is based on $rank$, where $rank(i)$ is the rank of transition $i$ over all transitions when sorted by $|\delta|$.
+
+\section{Video Games}
+
+\subsection{A3C}
+The team at DeepMind, in (\cite{a3c}) propose a new framework for training DRL agents. Multiple copies of the same agent are run asynchronously on a separate thread, all performing gradient descent updates to a single common neural network. At any given time, every agent will likely be experiencing a different state, giving a much greater view of the environment. This helps to mitigate the exploration vs. exploitation dilemma previously discussed. The framework, which we will refer to as 'asynchronous methods,' can be used to augment many different pre-existing DRL algorithms to improve their performance. As well as performance improvements, this framework significantly cuts the time to train an agent in the Atari 2600 test bed and can be accomplished on a standard multi-core CPU, as opposed to previous methods that have used specialized, expensive, GPU hardware. The results obtained in (\cite{a3c}) from their experiments were carried out on an unspecified 16-core CPU and an Nvidia K40 GPU. At the time of writing, an AMD Ryzen 1950X 16-core CPU costs \$874 and an Nvidia K40 costs \$2300 (prices from \texttt{www.amazon.com}). Thus asynchronous methods further lowers the economic barrier to entry to DRL. \paragraph{}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{a3c}
+    \caption{High level overview of Asynchronous Methods}
+\end{figure}
+
+Of the four augmented algorithms tested in (\cite{a3c}), Asynchronous Advantage Actor-Critic (A3C) stands as the current state of the art algorithm for training DRL agents. It performs better than all other competitors, including the most recent revisions of Deep Q-Network, in the Atari 2600 test bed in terms of game score, and in half the time of the previous state of the art. Additionally, DeepMind applied A3C to an interesting problem outside of the video game domain. An AI agent was taught to navigate the 3D maze environment Labyrinth, collecting rewards. The collectables were apples - worth 1 point and portals - worth 10 points. The agent was placed in a randomly generated maze each episode and was given 60 seconds to accumulate as much reward as possible. The agent peaked with an average score of 50, indicating that it had learned a general strategy for exploring randomised environments. The applications of this feat to fields such as robotics is exciting.
+
+\subsection{Games of Imperfect Information}
+Games of imperfect information mean that the player is unaware of the state or actions chosen by the opposite player. Games of imperfect information include Texas Hold'Em Poker, as players do not know the other player's card and Real-time strategy (RTS) games, as players cannot see the areas of the map where the other players are until they explore those areas. These scenarios provide new challenges for training more intelligent AI agents.
+
+\subsubsection{Case Study: StarCraft 2 Learning Environment}
+The StarCraft 2 Learning Environment (SC2LE) is a platform for testing RL AI agents in the game StarCraft 2, an RTS of imperfect information (\cite{starcraft}). It was created by DeepMind in collaboration with Blizzard Entertainment, the creators of StarCraft 2. The game is exceedingly more complex than the Atari 2600 games we have discussed previously.
+\begin{itemize}
+    \item Modern graphics. StarCraft 2 is a modern 3D game with a movable isometric camera perspective. This makes representing observations as a stack of game frames very difficult, as the pixel counts are high and parallax error is introduced.
+    \item  Action space. The diversity of actions in StarCraft 2 is far higher, with approximately $10^8$ possibilities in a point-and-click fashion. Many actions require a sequence of primitive actions such as, drag box around units, select building to build, place building on map. The player can be controlling potentially hundreds of units of many different types and abilities, as well as having to manage resources, building and ensure the opposing players aren't attacking.
+    \item Multiple agents. There can be up to 4 players in one game, all competing against one another for map control. This is a stark contrast to the single player Atari 2600 games competing against a single built-in game AI.
+    \item Imperfect information. There is a 'fog-of-war' element that hides parts of the map the player does not actively have units in.
+    \item Delayed rewards. The action of building a number of units, exploring an area of the map etc. can have rewards that do not materialize for many, many time steps. This provides a new frontier for agents capable of creating long term strategy.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{sc2le}
+    \caption{SC2LE interacting with an AI agent}
+\end{figure}
+
+For a more complete breakdown of the complexity of StarCraft 2, we refer the reader to the paper (\cite{starcraft}), specifically section 3.2. \paragraph{}
+
+SC2LE provides a high level Python API for programmatic interaction with StarCraft 2, called PySC2 that has been optimized for training RL agents. To tackle the aforementioned problem of high dimensional 3D game graphics, PySC2 abstracts away the game's graphics and replaces them with feature layers, primitive shape objects representing more complex in-game objects, while still maintaining some spacial aspects.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.6]{pysc2}
+    \caption{The feature layers of PySC2}
+\end{figure}
+
+In the figure above, on the left side, we can see a specific type of attack unit being represented as the green circles, resources as grey circles, worker units as small red circles etc. On the right side are different representations of features available from the full resolution mini-map, including height (top left), visibility (second from top left) and unit hit points or lives (bottom right). \paragraph{}
+
+SC2LE provides a set of 'mini-games,' which are stripped down versions of the original game intended to be much simpler scenarios, focused on obtaining a more fine grained objective. This allows training agents in progressive steps, building up to the ability to play a full game against multiple players. \paragraph{}
+
+A set of benchmark results were published by (\cite{starcraft}) with the release of SC2LE. These results were obtained by a DeepMind RL agent trained using the A3C algorithm under 3 different network architectures. Although the results were underwhelming - the agent did not win a single game against the easiest built-in game AI, the fully convolutional network managed to utilize one of the unit's (Teran worker) abilities to move buildings out of attack range, thus managing a draw by surviving past the 30 minute time limit. However, no agent managed to devise a winning strategy. The ability to devise such an agent is still an open question.
+
+\subsection{Performance Metrics}
+The most popular, general performance metrics used in (\cite{deepmind1}), (\cite{doubleq}), (\cite{dueling}), (\cite{human}) and (\cite{a3c}) when evaluating model performance on the Atari 2600 test bed are listed below.
+
+\begin{itemize}
+    \item Game score, the range of which will vary greatly between different games.
+    \item Max Q-Value estimates
+    \item Number of game frames survived
+\end{itemize}
+
+These metrics are gathered by running a predetermined number of evaluation games; where the agent selects it's action from the trained model. They are usually presented as a mean average, however there is an argument for taking the median value to lessen the effect of outliers (\cite{ale-eval-plat}). The evaluation runs are held after a regular number of training updates, where the agent solely exploits the trained policy and no learning updates take place. These intervals vary between different papers.
+
+\subsubsection{Normalizing Scores}
+The scales for scoring between two games can vary greatly, which makes it difficult to compare the performance of an algorithm on different games by quoting score alone. (\cite{ale-eval-plat}) recommend using normalizing all scores using predetermined reference values.
+
+\begin{align}
+    z_{g, i} = \frac{s_{g, i} - r_{g, min}}{r_{g, max} - r_{g, min}}
+\end{align}
+
+Where $z_{g, i}$ is the normalized score $s_i$ in game $g$. $[r_{g, min}, r_{g, max}]$ are reference values that we normalize to. These could be the minimum and maximum obtainable scores in the game, or more interestingly (\cite{human}) propose normalizing scores to the score achieved by a human player, where $r_{g, min} = \text{random players score} \text{and} r_{g, max} = \text{human players score}$. We can then see the algorithms percentage performance over human level. \paragraph{}
+
+Average reward (normalized or not) and average frames survived are an interesting duo of performance metrics. Together, they can give a better understanding of \textit{what} the agent is learning to do. In some games, the score might be dependant on surviving for a long time, for others it might be to shoot as many 'things' as possible and rack up points. For this project, we use the normalization to human scores proposed by (\cite{human}), average frames survived and model loss as a basis for our discussion. The human player in this case will be the author.
