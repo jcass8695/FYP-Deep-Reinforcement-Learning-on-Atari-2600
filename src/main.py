@@ -12,7 +12,7 @@ import util
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 parser = ArgumentParser()
-parser.add_argument('game', help='Select which game to play', type=str, choices=['space_invaders', 'breakout'])
+parser.add_argument('game', help='Select which game to play', type=str, choices=util.get_supported_games())
 parser.add_argument('deep_learning_mode', help='The type of Deep Learning to use', type=str, choices=['dqn', 'double', 'duel'])
 parser.add_argument('training_steps', default=25000, nargs='?', help='The number of steps (3 frames), to run during a training epoch?', type=int)
 parser.add_argument('training_epochs', default=20, nargs='?', help='The number of training epochs to run', type=int)
@@ -100,7 +100,5 @@ def play_randomly():
 
 
 if __name__ == '__main__':
-    # main()
-    play_and_display_intelligent()
-    # play_randomly()
+    main()
     K.clear_session()

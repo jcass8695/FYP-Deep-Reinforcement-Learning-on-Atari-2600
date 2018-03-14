@@ -7,6 +7,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+def get_supported_games():
+    with open('../supported-games.txt', 'r') as f:
+        games = f.read().strip().split('\n')
+
+    return games
+
+
 def save_results(path, data):
     ''' Save a set of metrics to numpy arrays specified by pathx, pathy '''
 

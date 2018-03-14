@@ -107,8 +107,7 @@ class Agent():
                     self.ale.reset_game()
 
                 new_state = np.stack(self.frame_buffer, axis=-1)
-                if reward != 0:
-                    print('r: ', reward)
+
                 # Experiment with clipping rewards for stability purposes
                 reward = np.clip(reward, -1, 1)
                 self.replay_memory.add(
