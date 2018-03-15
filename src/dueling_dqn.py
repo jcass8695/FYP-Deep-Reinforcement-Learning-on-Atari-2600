@@ -1,5 +1,5 @@
-from datetime import datetime
-from keras.models import Sequential, Model
+import pickle
+from keras.models import Model
 from keras.layers import Conv2D, Dense, Flatten, merge, Input
 from keras.optimizers import Adam
 from keras.models import load_model
@@ -12,13 +12,14 @@ from replaymemory import ReplayMemory
 class DuelingDQN(NN):
     def __init__(self, input_shape, output_shape, action_list, replay_memory: ReplayMemory, game_name, load=False):
         super().__init__(input_shape, output_shape, replay_memory, game_name)
-        self.tau = 5000  # Number of training steps before updating the target network weights
 
         if load:
             self.q_model, self.target_model = self.load_model()
+            self.epsilon, self.tau = self.load_hyperparams()
         else:
             self.q_model = self.build_qmodel()
             self.target_model = self.build_qmodel()
+            self.tau = 5000  # Number of training steps before updating the target network weights
 
         self.action_list = action_list
 
@@ -101,4 +102,18 @@ class DuelingDQN(NN):
             return qmodel, tmodel
         except OSError:
             print('Failed to load models for DuelingDQN')
+            raise KeyboardInterrupt
+
+    def save_hyperparams(self):
+        with open('./data/duel/{}_hyperparams.obj'.format(self.game_name), 'wb') as f:
+            super().save_hyperparams()
+            pickle.dump((self.epsilon, self.tau), f)
+
+    def load_hyperparams(self):
+        try:
+            with open('./data/duel/{}_hyperparams.obj'.format(self.game_name), 'rb') as f:
+                super().load_hyperparams()
+                return pickle.load(f)
+        except FileNotFoundError:
+            print('No hyper parameters object file found')
             raise KeyboardInterrupt

@@ -71,7 +71,7 @@ def main():
                 avg_loss
             )
 
-    except KeyboardInterrupt:
+    except:
         print('Quitting...')
 
 
@@ -100,5 +100,6 @@ def play_randomly():
 
 
 if __name__ == '__main__':
+    # play_and_display_intelligent()
     main()
     K.clear_session()

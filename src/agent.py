@@ -1,5 +1,6 @@
 from traceback import print_exc
 from collections import deque
+import pickle
 from ale_python_interface import ALEInterface
 import numpy as np
 from replaymemory import ReplayMemory
@@ -11,6 +12,7 @@ from dueling_dqn import DuelingDQN
 class Agent():
     def __init__(self, game, agent_type, display, load_model, record, test):
         self.name = game
+        self.agent_type = agent_type
         self.ale = ALEInterface()
         self.ale.setInt(str.encode('random_seed'), np.random.randint(100))
         self.ale.setBool(str.encode('display_screen'), display or record)
@@ -21,7 +23,11 @@ class Agent():
         self.action_list = list(self.ale.getMinimalActionSet())
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape
         self.frame_buffer = deque(maxlen=3)
-        self.replay_memory = ReplayMemory(500000, 32)
+
+        if load_model:
+            self.load_replaymemory()
+        else:
+            self.replay_memory = ReplayMemory(500000, 32)
 
         model_input_shape = self.frame_shape + (3,)
         model_output_shape = len(self.action_list)
@@ -85,11 +91,20 @@ class Agent():
                 gameover = False
                 initial_state = np.stack(self.frame_buffer, axis=-1)
                 action = self.model.predict_action(initial_state)
+
+                # Backup data
                 if step % 5000 == 0:
                     self.model.save_model()
+                    self.model.save_hyperparams()
+                    self.save_replaymemory()
 
-                if hasattr(self.model, 'tau') and step % self.model.tau == 0:
-                    self.model.update_target_model()
+                # If using a target model check for weight updates
+                if hasattr(self.model, 'tau'):
+                    if self.model.tau == 0:
+                        self.model.update_target_model()
+                        self.model.tau = 5000
+                    else:
+                        self.model.tau -= 1
 
                 # Play for 3 frames and stack 'em up
                 lives_before = self.ale.lives()
@@ -119,12 +134,11 @@ class Agent():
                 )
 
                 loss += self.model.replay_train()
-
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt
         except:
-            print_exc()
+            # print_exc()
             self.model.save_model()
+            self.model.save_hyperparams()
+            self.save_replaymemory()
             raise KeyboardInterrupt
 
         return np.mean(loss, axis=0)
@@ -178,3 +192,17 @@ class Agent():
         print('Score: ', total_score)
         self.ale.reset_game()
         return total_score, frames_survived
+
+    def save_replaymemory(self):
+        with open('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'wb') as f:
+            print('Saved replay memory')
+            pickle.dump(self.replay_memory, f)
+
+    def load_replaymemory(self):
+        try:
+            with open('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'rb') as f:
+                print('Loaded replay memory')
+                self.replay_memory = pickle.load(f)
+        except FileNotFoundError:
+            print('No replay memory file found')
+            raise KeyboardInterrupt

@@ -11,7 +11,7 @@ class NN(ABC):
         # Model Parameters
         self.epsilon = 1.0  # Exploration rate
         self.epsilon_floor = 0.1  # Min Exploration rate
-        self.epsilon_decay_rate = (self.epsilon - self.epsilon_floor) / 1000000
+        self.epsilon_decay_rate = (self.epsilon - self.epsilon_floor) / 50000
         self.gamma = 0.99  # Discount rate
         self.learning_rate = 0.00025
         self.minibatch_size = 32
@@ -61,3 +61,11 @@ class NN(ABC):
     @abstractmethod
     def load_model(self):
         print('Model loaded')
+
+    @abstractmethod
+    def save_hyperparams(self):
+        print('Saved Hyperparameters')
+
+    @abstractmethod
+    def load_hyperparams(self):
+        print('Hyperparameters loaded')

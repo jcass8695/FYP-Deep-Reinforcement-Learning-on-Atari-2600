@@ -2,7 +2,6 @@ import os
 import glob
 from pprint import pprint
 from datetime import datetime
-from subprocess import run, PIPE
 import numpy as np
 from matplotlib import pyplot as plt
 

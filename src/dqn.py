@@ -1,4 +1,4 @@
-from datetime import datetime
+import pickle
 import numpy as np
 from keras.models import load_model
 from nn_base import NN
@@ -10,6 +10,7 @@ class DeepQN(NN):
         super().__init__(input_shape, output_shape, replay_memory, game_name)
         if load:
             self.qmodel = self.load_model()
+            self.epsilon = self.load_hyperparams()
         else:
             self.qmodel = self.build_qmodel()
 
@@ -60,4 +61,18 @@ class DeepQN(NN):
             return model
         except OSError:
             print('Failed to load model for DQN')
+            raise KeyboardInterrupt
+
+    def save_hyperparams(self):
+        with open('./data/dqn/{}_hyperparams.obj'.format(self.game_name), 'wb') as f:
+            super().save_hyperparams()
+            pickle.dump(self.epsilon, f)
+
+    def load_hyperparams(self):
+        try:
+            with open('./data/dqn/{}_hyperparams.obj'.format(self.game_name), 'rb') as f:
+                super().load_hyperparams()
+                return pickle.load(f)
+        except FileNotFoundError:
+            print('No hyper parameters object file found')
             raise KeyboardInterrupt
