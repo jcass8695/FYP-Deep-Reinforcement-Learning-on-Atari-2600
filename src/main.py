@@ -39,8 +39,8 @@ def main():
         return
 
     games_to_play = args.evaluation_games
-    try:
-        for epoch in range(args.training_epochs):
+    for epoch in range(args.training_epochs):
+        try:
             running_score = 0
             frames_survived = 0
             print('Training Epoch: ', epoch + 1)
@@ -49,10 +49,11 @@ def main():
                 agent_scores = agent.simulate_intelligent(evaluating=True)
                 running_score += agent_scores[0]
                 frames_survived += agent_scores[1]
-
+        except:
+            print('Quitting')
+        finally:
             running_score /= games_to_play
             frames_survived /= games_to_play
-
             # Save the Average Score and Frames survived over 10 agents for this interval
             util.save_results(
                 './data/{1}/{0}_avgscore_{1}.npy'.format(agent.name, args.deep_learning_mode),
@@ -70,9 +71,6 @@ def main():
                 './data/{1}/{0}_loss_{1}.npy'.format(agent.name, args.deep_learning_mode),
                 avg_loss
             )
-
-    except:
-        print('Quitting...')
 
 
 def play_and_display_intelligent():

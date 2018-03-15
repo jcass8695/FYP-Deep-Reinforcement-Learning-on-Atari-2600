@@ -23,6 +23,8 @@ class Agent():
         self.action_list = list(self.ale.getMinimalActionSet())
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape
         self.frame_buffer = deque(maxlen=3)
+        if test:
+            self.name += '_test'
 
         if load_model:
             self.load_replaymemory()
@@ -31,9 +33,6 @@ class Agent():
 
         model_input_shape = self.frame_shape + (3,)
         model_output_shape = len(self.action_list)
-
-        if test:
-            self.name += '_test'
 
         if agent_type == 'dqn':
             self.model = DeepQN(
