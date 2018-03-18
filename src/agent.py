@@ -1,5 +1,5 @@
-from traceback import print_exc
 from collections import deque
+import bz2
 import pickle
 from ale_python_interface import ALEInterface
 import numpy as np
@@ -29,7 +29,7 @@ class Agent():
         if load_model:
             self.load_replaymemory()
         else:
-            self.replay_memory = ReplayMemory(500000, 32)
+            self.replay_memory = ReplayMemory(20000, 32)
 
         model_input_shape = self.frame_shape + (3,)
         model_output_shape = len(self.action_list)
@@ -193,15 +193,15 @@ class Agent():
         return total_score, frames_survived
 
     def save_replaymemory(self):
-        with open('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'wb') as f:
+        with bz2.BZ2File('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'wb') as f:
+            pickle.dump(self.replay_memory, f, protocol=pickle.HIGHEST_PROTOCOL)
             print('Saved replay memory')
-            pickle.dump(self.replay_memory, f)
 
     def load_replaymemory(self):
         try:
-            with open('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'rb') as f:
-                print('Loaded replay memory')
+            with bz2.BZ2File('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'rb') as f:
                 self.replay_memory = pickle.load(f)
+                print('Loaded replay memory')
         except FileNotFoundError:
             print('No replay memory file found')
             raise KeyboardInterrupt
