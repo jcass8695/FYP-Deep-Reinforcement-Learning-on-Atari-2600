@@ -1,0 +1,235 @@
+\chapter{Design}
+One of the primary objectives of this project is to build a system for comparing the performance of DRL algorithms when applied to agents in the Atari 2600 video game test bed. This chapter discusses the design and implementation of that system. \paragraph{}
+
+We begin with a discussion of the different platforms and tools available to us to aid in the implementation. We will not be building the system completely from scratch, we will require an emulator to host our agents and environments and external libraries to prevent 'reinventing the wheel' when it comes to the programming of the system. We will follow with a broad system overview and then an in-depth look at the system architecture. It is the aim of these sections to leave the reader with a thorough understanding of exactly \textit{how} the system operates. Finally we will close with the reasoning behind the choice of games, Space Invaders and Breakout, and algorithms, Deep Q-Network (DQN), Double Deep Q-Network (2DQN) and Dueling Double Deep Q-Network (3DQN), for the evaluation of our system.
+
+\section{Platform and Tool Choices}
+\subsection{OpenAI Gym and The ALE}
+The OpenAI Gym and the ALE were introduced in Chapter 2 as RL research tools for the video game domain. Here we give the strengths (+) and weaknesses (-) of each, and the reasoning behind the selection of the ALE as the foundation of our system.
+
+\textbf{OpenAI Gym}
+\begin{itemize}
+    \item[$+$] Provides a great diversity of environments.
+    \item[$+$] The high-level API is simple to use.
+    \item[$-$] The high-level API does not provide enough control nor is it as feature rich as the ALE.
+    \item[$-$] The selection of Atari 2600 environments is limited.
+\end{itemize}
+
+\textbf{The ALE}
+\begin{itemize}
+    \item[$+$] Provides a large range of supported Atari 2600 environments (61, see \ref{app:ALE_Games} for full list) with more planned for the future.
+    \item[$+$] Many more features and higher level of control, as detailed in Chapter 2.
+    \item[$-$] The Python wrapper is slightly behind the C++ API.
+    \item[$-$] The environments are limited to Atari 2600.
+\end{itemize}
+
+Having weighed the strengths and weaknesses of both tools, it became clear that the low-level amount of control that the ALE provides would be imperative for the implementation of the system, in terms of customization and data collection. The suite of Atari 2600 environments is a well known test bed for RL research, hence the additional environments provided by the OpenAI Gym were not needed.
+
+\subsection{Choice of Programming Languages and Libraries}
+\subsubsection{Python}
+Python is a high level programming language, made popular by it's simplistic human-readable syntax, it's ability to perform tasks in minimal lines of code, and it's vast community support in the form of modules (Python syntax for external libraries) \cite{python}. Python 3.5 was used to build the system in it's entirety. It is the default language to use when implementing deep neural networks thanks to the wide support of deep learning modules. As mentioned previously, the ALE API has a Python wrapper with nearly full functionality. The modules that form the foundation of the system are detailed below.
+
+\subsubsection{Tensorflow}
+Tensorflow (TF) is an open-source, low-level ML framework \cite{tf}. It provides an API for deploying computations to CPU and GPU hardware, where calculations are represented as a graph. The nodes represent a mathematical operation and the edges represent the multi-dimensional matrices, called 'tensors,' serving as input and output. TF comes in two flavours, a CPU only version and a GPU support version. With the GPU support version, it will automatically detect the hardware configuration of the machine it is running on and deploy calculations appropriately, with GPU's taking priority over CPU's by default.
+
+\subsubsection{Keras}
+Keras is a high-level neural networks API for interacting with low-level ML frameworks \cite{keras}. Keras can use many different low-level frameworks as it's backend. We use TF in the backend for this project and use Keras in our code to implement the deep neural networks for our DRL algorithms.
+
+\subsubsection{Numpy}
+Numpy is one of the seminal tools for scientific programming in Python. It provides an N-dimensional matrix object with support for matrix operations and a host of other extremely useful mathematical operations such as:
+\begin{itemize}
+    \item Linear algebra
+    \item Fourier transforms
+    \item Random number generation
+    \item Statistics
+\end{itemize}
+
+
+\subsection{Trinity GPU cluster and Slurm} \label{subsec:boole}
+To aid in the training of DRL models, Trinity kindly gave us access to 'Boole,' a cluster of high performance machines equipped with GPU hardware. This decreased training times and made it possible to experiment with different system configurations. Slurm is a Linux cluster management system that provides job scheduling and access to system resources \cite{slurm}. Slurm is employed on Boole to manage access to nodes. The cluster is shared by many researchers in Trinity, so naturally we are not able to obtain unrestricted access. Often submitted jobs will have to wait in a queue for hardware to become available. Due to the lengthy process of training ML models, these queue times can stretch to hours and sometimes days. This introduced a somewhat challenging time constraint on the project. To run a program on a compute node, the user must write a submission bash script, providing the following information:
+
+\begin{enumerate}
+    \item A job name.
+    \item Max time to run the program.
+    \item If a GPU is required, that must be specified. The default is to run the job on the CPU.
+    \item Any dependencies that will be required by the program. Boole comes equipped with a large list of popular programs packaged as modules, such as Python, cmake, gcc and many more.
+    \item The command line string to launch the program.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{lstlisting}[language=bash]
+    #!/bin/sh
+    #SBATCH -n 1
+    #SBATCH -t 2-00:00:00
+    #SBATCH -p compute
+    #SBATCH -J t_br_double
+    #SBATCH --mail-type=ALL
+    #SBATCH --mail-user=jacassid@tcd.ie
+    #SBATCH --gres=gpu:2
+
+    . /etc/profile.d/modules.sh
+    module load cports6 Python/3.5.2-gnu
+    module load cports7 gcc/6.4.0-gnu
+    module load apps cuda/9.0
+    srun ./main.py breakout double -t -l
+    \end{lstlisting}
+    \caption{Example Slurm job submission script. This script allocates a node for 2 days with 2 GPUs on the compute partition. We have provided the option to receive emails when the job starts/finishes/fails. The Python3, gcc and cuda9 modules are loaded and finally we run our system with the srun command.}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{boole-q}
+    \caption{An example of the job queue on Boole. PD indicates pending jobs in the queue.}
+    \label{fig:boolq}
+\end{figure}
+
+\section{System Overview}
+The core functionality of the system is two-fold.
+\begin{enumerate}
+    \item Provide a platform for training Atari 2600 AI agents using user-implemented DRL algorithms.
+    \item Provide a means to compare and contrast the performance of these agents with a variety of performance metrics
+\end{enumerate}
+
+With these core functionalities in mind, we assign three main goals for the design of the system.
+\begin{enumerate}
+    \item Support any game that the ALE does with no changes required in the code.
+    \item Make it easy to implement and apply additional algorithms for future developers.
+    \item Provide a suite of useful research tools.
+\end{enumerate}
+\paragraph{}
+
+To make the system game-agnostic, it had to be built to adapt to any possible variables between Atari 2600 games. It was determined that for our purposes, the variables we would be concerned with are control scheme and graphics scheme, as they determine the output and input of the neural networks of our DRL algorithms respectively. Fortunately, the ALE provides a function for querying the minimum available action set from the game's ROM. Although the graphics between games varies greatly, the dimensions of each frame in pixels remains constant at $210x160x3$. Hence, the goal to make the system playable for any supported ALE game was a simple task to achieve, owed to the low-level functionality of the ALE API. To apply the system to any one of the supported games, the game title can be passed as the first positional command line argument when running the program. It is required that the title be in the format specified in \ref{app:ALE_Games}. \paragraph{}
+
+Support for future DRL algorithms has been provided in the form of a base class, \texttt{NN}. This class defines a number of standard methods that future classes can inherit from, such as building the neural network from \citet{human}, network training updates, predicting actions and the saving and loading of the serialized neural network weights and hyper-parameters. The three algorithms that were implemented for this project all derive from \texttt{NN}. \paragraph{}
+
+The system provides a number of useful tools that automate many important and time-consuming tasks.
+
+\begin{itemize}
+    \item The ability to define 'test' agents, to experiment with different configurations. These test agents won't interfere with the saved data of the current agents and can be safely run without the fear of overwriting any previous work.
+    \item The ability to set a recording session to take video footage of the agent playing an episode of the specified game.
+    \item Give the researcher the ability to define the length and number of epochs to train the agent for, as well as the number of evaluation games to perform after each epoch \footnote{An 'epoch' here is defined as the number of 'steps' to train an agent for before each round of evaluation games. For our research we used 25,000 steps. A 'step' is defined as 3 game frames.}.
+    \item Automatic collection of performance metrics.
+    \item Automatic backup of neural network weights, hyper-parameters and replay memory to preserve state between training sessions.
+\end{itemize}
+
+The final point in this list is quite important There is a 2 day time limit for jobs on the Trinity GPU cluster. Our results show that this time amounts to approximately 7-10 complete epochs, depending on the algorithm. In order to preserve the state of the experiment between jobs, this functionality was imperative to implement. To save network weights, we use the built-in Keras \texttt{save} method, which saves the weights in a compressed \texttt{.h5} file format. To preserve network hyper-parameters and experience replay, we first use the Python Pickle module \cite{pickle} to serialize the objects. Without compression, the replay memory object can grow to Gigabyte size on disk, hence we use the Python bz2 module \cite{bz2} to compress the serialized object using the bzip2 compression algorithm and save the objects as \texttt{.obj} files.
+
+\section{System Architecture}
+In this section we go into further detail with the system architecture and design decisions. We refer to Figure \ref{fig:sys} for a high-level description of the flow of control when running the system.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{system_arch}
+    \caption{Flow of control through the system. Main instantiates the Agent class. An agent instantiates an Algorithm class. An algorithm \textit{may} inherit from the NN base class}
+    \label{fig:sys}
+\end{figure}
+
+\subsection{Main}
+When we first launch the program, main is run. The purpose of main is to parse command line arguments, instantiate the Agent class and pass it the parsed command line arguments, and run the Train-Evaluate loop for the specified number of epochs. A set of command line arguments are provided to control the operation of the system;
+
+\subsubsection{Required Positional Args}
+\begin{itemize}
+    \item \texttt{game}: The desired game to train an agent on. Must be in the format specified in \ref{app:ALE_Games}.
+    \item \texttt{deep-learning-mode}: The desired DRL algorithm to use in training. Must be an implemented Algorithm class. The current options are \texttt{dqn, double and duel}. Future work will have to manually add the options for new algorithms, but this is trivial to do.
+\end{itemize}
+
+\subsubsection{Optional Positional Args}
+\begin{itemize}
+    \item \texttt{training-steps}: The number of steps to train for in each epoch. Default 25000.
+    \item \texttt{training-epochs}: The number of epochs to train for in total. Default 20.
+    \item \texttt{evaluation-games}: The number of games to evaluate performance on at the end of each epoch. Default 10.
+\end{itemize}
+
+\subsubsection{Options}
+\begin{itemize}
+    \item \texttt{-l, --load\_model}: If set a new model(s) will be created for the provided \texttt{game}, \texttt{deep-learning-mode} pair. Equivalent to starting fresh.
+    \item \texttt{-d, --display}: If set, evaluation games will render the game to the screen. Creates notable slow down.
+    \item \texttt{-t, --test\_run}: Used to create a separate testing \texttt{game}, \texttt{deep-learning-mode} pair without overriding the currently saved pair.
+    \item \texttt{-r, --record}: Records video footage of an agent in \texttt{game} using the provided \texttt{deep-learning-mode}.
+\end{itemize} \paragraph{}
+
+After each epoch of training, the agent returns the average loss from the network over that epoch. Then main runs the agent for the specified number of evaluation games. The Agent class returns the score achieved in the game and the number of frames survived. They are averaged over the total number of games and saved to disk for later inspection. This allows us to monitor the progress of an agent and plot it's performance over time.
+
+\subsection{Agent}
+The Agent class is the bridge between the system and the ALE API. It implements the theoretical concept of a RL agent. It's purpose is to define how the agent trains and maintain game specific information; the available action list, the replay memory and an instance of the desired algorithm, which it instantiates from one of the provided Algorithm classes.
+
+\subsubsection{Initialization}
+In the Agent class constructor, we pass the parsed command line arguments from main so we can direct them on to the ALE API, as it controls the ability to display the screen, record footage etc. The agent calls the ALE to load the specified Atari game ROM from disk. The communication with the ALE is accomplished by setting specific flags before loading the ROM. The flags are identified by passing byte encoded strings to the API, an example is given in Figure \ref{fig:aleflags}.
+
+\begin{figure}[h]
+    \centering
+    \begin{lstlisting}[language=Python]
+    ale = ALEInterface()
+    ale.setInt(str.encode('random_seed'), np.random.randint(100))
+    ale.setBool(str.encode('display_screen'), True)
+    ale.loadROM(str.encode('./roms/space_invaders.bin))
+    \end{lstlisting}
+    \caption{Calling the ALE API to set a random game seed, enable screen display and load the Space Invaders ROM from disk.}
+    \label{fig:aleflags}
+\end{figure}
+
+\subsubsection{Replay Memory}
+The agent instantiates a ReplayMemory object to function as the experience replay. This is implemented as a queue data structure, with a max length of 20000 items. As discussed previously, we serialize and compress the replay memory object when saving and loading between training sessions, which is also controlled by the Agent class. The choice of keeping a 20000 item max length is not random. The work  of (\citet{deepmind1,human}), which this project takes much inspiration from, including neural network architecture, hyper parameters and some design decisions such as reward clipping and frame skipping, trained their agents without pause for 50 million frames in \citet{deepmind1} and 200 millions frames in \citet{human}, both using a replay memory of 1 million items. These targets are not realistically achievable. There were a number of time constraints imposed on the project; the shared access to Boole, the project deadline coupled with the time taken to build the system and experiment with a few different configurations to obtain respectable results. It is not disclosed what hardware \citet{deepmind1} or \cite{human} had access to, so we cannot make any hardware comparisons with Boole, however, when attempting to use a 500000 size replay memory, the program would frequently be stopped by Slurm due to over-consumption of memory. With these constraints taken into consideration, we made the decision that 1 million frames was an achievable target to strive for for each game-algorithm pair, $\frac{1}{50}$ of the 50 million frames \citet{deepmind1} trained for. Thus we scaled down the size of the replay memory accordingly, from 1 million to 20000 items.
+
+\subsubsection{Training Routine}
+As mentioned previously, the Agent class controls how the agent trains. The agent loops for the number of steps provided from the command line option, backing up the network weights, hyper-parameters and replay memory object to disk every 5000 steps. During training the agent maintains a queue called the \texttt{frame buffer} that holds the 3 most recent game frames. At the start of each loop, the \texttt{frame buffer} holds the initial state\footnote{On the very first iteration we fill the buffer with 3 copies of the starting frame.}. By the end of the loop it holds the next state, the state that results from taking an action predicted by an Algorithm object. We give a step-by-step guide to the training process below.
+\begin{enumerate}
+    \item The agent concatenates the 3 frames in the \texttt{frame buffer} into one array and saves it to an \texttt{initial state} variable.
+    \item The Algorithm object is given \texttt{initial state} as input and outputs a predicted action.
+    \item The agent plays the action for 3 frames, adding each frame to the \texttt{frame buffer}, pushing the older frames out. After 3 frames we concatenate the frames in the \texttt{frame buffer} again, giving the \texttt{next state}. Repeating actions for $n$ frames is a technique known as frame skipping, proposed by \citet{deepmind1}.
+    \item The reward from taking the action is calculated as the increase in game score accrued by taking that action. Notice they are only ever positive scores. No negative reward is provided by the ALE for negative actions.
+    \item We check to see if 1) the agent lost a game 'life' or 2) the agent reached a game over terminal state. If either of these conditions are met, we set the reward to -1.
+    \item The reward is clipped to $-1 \leq 0 \leq 1$. This is a tactic known as reward clipping, proposed by (\citet{human}) to limit the scale of error derivatives and improve the performance of using the same learning rate across different games.
+    \item Save the $(s, a, r, s', term)$ tuple to the replay memory.
+    \item The Algorithm object to performs a training update on the neural network.
+\end{enumerate}
+
+\subsection{Algorithm}
+Each algorithm requires an Algorithm class. We have chosen to implement the 3 algorithms DQN, 2DQN and 3DQN, hence we have provided the classes \texttt{DQN}, \texttt{DoubleDQN} and \texttt{DuelingDQN}, but for future research any number of Algorithm classes could be created. The three classes that we have provided inherit from the base \texttt{NN} class. \texttt{NN} assumes that any classes inheriting from it are implementing DRL algorithms, and require a neural network to operate. The default network provided is the network put forward in (\citet{human}). \paragraph{}
+
+The function of Algorithm classes is to provide prediction of actions given an environment state, perform training updates on the neural network and save and load it's weights and hyper-parameters. The implementation of the training updates varies between algorithms, previous chapters have outlined the steps for the DQN and 2DQN algorithms. One constant among all algorithms however is the $\epsilon$ greedy exploration policy. We linearly anneal $\epsilon$ over a certain number of training updates. (\citet{deepmind1,doubleq,dueling}) reduce $\epsilon$ over the first 1 million updates. For reasons previously discussed, we scale this down by a factor of 50 to every 20000 updates.
+
+\subsection{Neural Network Architecture}
+As we have mentioned previously, the neural network architecture used in the implementation of the \texttt{DQN}, \texttt{DoubleDQN} and \texttt{DuelignDQN} classes was first proposed by (\citet{deepmind1}). It was modified by (\citet{human}) and that version was used in (\citet{doubleq}) for Double Deep Q-Learning. The convolutional network section was also used by (\citet{dueling}). For this project, we use the modified version from (\citet{human}), with one small adaptation. We give the network 3 greyscale frames of size 210x160 as input as opposed to cropped 84x84 frames, as we felt that the game area was not being wholly captured by an 84x84 size. This is one area where we have slight disagreement with the published practices. The final architecture used is given in Figure \ref{fig:nnarch}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{neuralnet-arch}
+    \caption{The neural network architecture employed by (\citet{human})}
+    \label{fig:nnarch}
+\end{figure}
+
+\section{Choice of Games}
+The number of games that we could use in our comparisons was limited due to the time constraints outlined in Subsection \ref{subsec:boole}. Each game requires training on 3 different algorithms. Hence we decided to choose two games that were suitably different that we could investigate the adaptability of each algorithm. When we compare the difference of two games, we look at:
+
+\begin{itemize}
+    \item Objectives/scoring systems.
+    \item Graphics.
+    \item Control schemes.
+\end{itemize} \paragraph{}
+
+This led us to select Space Invaders \cite{space-invaders} and Breakout \cite{breakout} as our games of choice. In Space Invaders, the objective is to shoot enemy aliens while avoiding their projectiles, whereas in Breakout the objective is to break as many blocks as possible by steering towards the projectile and bouncing the ball off the paddle. We conducted a test with a random agent playing each game. The random agent can score approximately 100 points in Space Invaders, which is much greater than the 0-2 points possible in Breakout, thus we have suitably different objectives and scoring systems \paragraph{}
+
+The amount of colour in Space Invaders is quite limited. The enemy aliens, player ship, barriers and background are the only entities in the game as seen in Figure \ref{fig:space_invaders}. In Breakout there are multiple tiers of coloured blocks, with increasing score the higher the tier, providing a broader range of graphics for the agent to learn and understand as seen in Figure \ref{fig:breakout}. \paragraph{}
+
+Both games have left and right movement. Space Invaders however, provides an extra control over Breakout; to shoot.
+
+\begin{figure}[h]
+    \begin{minipage}[c]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{space-invaders}
+        \caption{Space Invaders}
+        \label{fig:space_invaders}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[c]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{breakout}
+        \caption{Breakout}
+        \label{fig:breakout}
+    \end{minipage}
+\end{figure}
+
+\section{Choice of Algorithms}
+DQN, 2DQN and 3DQN as outlined in Chapters 2 \& 3 form a family of algorithms, brought together by their adaptation of the Q-Learning algorithm to Deep Learning. We selected DQN, as it was the first algorithm to spark the field of DRL. It is very well documented for this reason and there were many resources to aid in learning how it worked. 2DQN is the successor to DQN and 3DQN is the successor to 2DQN, thus they provided a natural basis for comparison. \paragraph{}
+
+We considered implementing A3C, as it is the current state of the art algorithm for this application and it would be interesting to see what results we could obtain over the aforementioned algorithms. However we eventually decided against it due to the time constraints mentioned in previous sections. Implementing A3C would be time consuming due to the fact that it requires co-ordinating parallel workers in updating a central neural network, which presents a significant implementation challenge that we may have struggled to overcome within the project deadlines.
