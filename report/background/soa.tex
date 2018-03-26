@@ -4,13 +4,7 @@ The current state of the field of RL is vast. More and more it is being utilized
 \section{Robotics}
 Robotics is a field very suited to RL techniques. It closely follows the basic definition of an RL task involving an agent exploring an environment through trial and error to maximize some reward function. Although it is well suited, there are many challenges that face RL techniques in robotics. The recent work of (\citet{a3c}), the A3C algorithm (see subsequent section for an explanation of the algorithm), is an example of state of the art RL techniques addressing one of the most pressing issues for RL in robotics: the 'curse of dimensionality' with respect to the navigation of a robot through a complex environment. Coincidentally A3C has provided state of the art results in video game AI agent research results. \paragraph{}
 
-The representation of state in robotics is often imperfect and noisy due to it's high levels of dimensionality and the resolution reduction of continuous physical measurements to discrete digital computer/controller representations. A mechanical representation of state such as robot limb position, or any other physical measurement can have many degrees of freedom (DOF). In addition to state complexity, the action space in contrast to the Atari domain which is fixed and simple, can reach high dimensionality due to multiple DOF and the hardware complexity of most modern robots, where there can be a large number of motors and other components working in tandem, each adding to the complexity of the total action space. \paragraph{}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.75]{dof}
-    \caption{Example DOF figure of a robotic arm}
-\end{figure}
+The representation of state in robotics is often imperfect and noisy due to it's high levels of dimensionality and the resolution reduction of continuous physical measurements to discrete digital computer/controller representations. A mechanical representation of state such as robot limb position, or any other physical measurement usually have up to 6 DOF. In addition to state complexity, the action space in contrast to the Atari domain which is fixed and simple, can reach high dimensionality due to multiple DOF and the hardware complexity of most modern robots, where there can be a large number of motors and other components working in tandem, each adding to the complexity of the total action space. \paragraph{}
 
 With respect to a robot that navigates through a complex, partially observable environment with dynamic obstacles, in addition to the high dimensional state size, the memory efficiency of remembering past experiences becomes a pressing issue as it is of utmost importance for a robot learning to navigate to be able to utilize past experiences to map its surroundings. A3C abandons experience replay in favour of a stacked Long Short Term Memory (LSTM) network running multiple agents that are exploring the environment in parallel, providing a wider range of experiences that scales with the number of parallel agents employed. This dramatically increased the memory efficiency of the implementation.
 
@@ -109,7 +103,7 @@ The two streams are aggregated at the final layer to output $Q(s, a)$. The convo
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.35]{dueling_q}
-    \caption{The original Deep Q-Network (above) vs. Dueling Q-Network (below) architecture}
+    \caption{The original Deep Q-Network (above) vs. Dueling Q-Network (below) architecture (\citet{dueling})}
 \end{figure}
 
 The aggregating layer is not a simple sum of $A(s, a)$ and $V(s)$. It was found that equation \ref{eq:adv} ``is unidentifiable in the sense that given $Q$ we cannot recover $V$ and $A$ uniquely'' (\citet{dueling}). Instead we use a slightly augmented version:
@@ -140,7 +134,7 @@ The team at DeepMind, in (\citet{a3c}) propose a new framework for training DRL 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.5]{a3c}
-    \caption{High level overview of Asynchronous Methods}
+    \caption{High level overview of Asynchronous Methods, (\citet{a3cimage})}
 \end{figure}
 
 Of the four augmented algorithms tested in (\citet{a3c}), Asynchronous Advantage Actor-Critic (A3C) stands as the current state of the art algorithm for training DRL agents. It performs better than all other competitors, including the most recent revisions of Deep Q-Network, in the Atari 2600 test bed in terms of game score, and in half the time of the previous state of the art. Additionally, DeepMind applied A3C to an interesting problem outside of the video game domain. An AI agent was taught to navigate the 3D maze environment Labyrinth, collecting rewards. The collectables were apples - worth 1 point and portals - worth 10 points. The agent was placed in a randomly generated maze each episode and was given 60 seconds to accumulate as much reward as possible. The agent peaked with an average score of 50, indicating that it had learned a general strategy for exploring randomised environments. The applications of this feat to fields such as robotics is exciting.
@@ -161,7 +155,7 @@ The StarCraft 2 Learning Environment (SC2LE) is a platform for testing RL AI age
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.5]{sc2le}
-    \caption{SC2LE interacting with an AI agent}
+    \caption{SC2LE interacting with an AI agent (\citet{starcraft})}
 \end{figure}
 
 For a more complete breakdown of the complexity of StarCraft 2, we refer the reader to the paper (\citet{starcraft}), specifically section 3.2. \paragraph{}
@@ -171,7 +165,7 @@ SC2LE provides a high level Python API for programmatic interaction with StarCra
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.6]{pysc2}
-    \caption{The feature layers of PySC2}
+    \caption{The feature layers of PySC2 (\citet{starcraft})}
 \end{figure}
 
 In the figure above, on the left side, we can see a specific type of attack unit being represented as the green circles, resources as grey circles, worker units as small red circles etc. On the right side are different representations of features available from the full resolution mini-map, including height (top left), visibility (second from top left) and unit hit points or lives (bottom right). \paragraph{}
@@ -180,7 +174,7 @@ SC2LE provides a set of 'mini-games,' which are stripped down versions of the or
 
 A set of benchmark results were published by (\citet{starcraft}) with the release of SC2LE. These results were obtained by a DeepMind RL agent trained using the A3C algorithm under 3 different network architectures. Although the results were underwhelming - the agent did not win a single game against the easiest built-in game AI, the fully convolutional network managed to utilize one of the unit's (Teran worker) abilities to move buildings out of attack range, thus managing a draw by surviving past the 30 minute time limit. However, no agent managed to devise a winning strategy. The ability to devise such an agent is still an open question.
 
-\subsection{Performance Metrics}
+\subsection{Performance Metrics} \label{subsec:metrics}
 The most popular, general performance metrics used in (\citet{doubleq,dueling,deepmind1,human,a3c}) when evaluating algorithm performance on the Atari 2600 test bed are listed below.
 
 \begin{itemize}
@@ -200,4 +194,4 @@ The scales for scoring between two games can vary greatly, which makes it diffic
 
 Where $z_{g, i}$ is the normalized score $s_i$ in game $g$. $[r_{g, min}, r_{g, max}]$ are reference values that we normalize to. These could be the minimum and maximum obtainable scores in the game, or more interestingly (\citet{human}) propose normalizing scores to the score achieved by a human player, where $r_{g, min} = \text{random players score} \text{and} r_{g, max} = \text{human players score}$. We can then see the algorithms percentage performance over human level. \paragraph{}
 
-Average reward (normalized or not) and average frames survived are an interesting duo of performance metrics. Together, they can give a better understanding of \textit{what} the agent is learning to do. In some games, the score might be dependant on surviving for a long time, for others it might be to shoot as many 'things' as possible and rack up points. For this project, we use the normalization to human scores proposed by (\citet{human}), average frames survived and network loss as a basis for our discussion. The human player in this case will be the author.
+Average reward (normalized or not) and average frames survived are an interesting duo of performance metrics. Together, they can give a better understanding of \textit{what} the agent is learning to do. In some games, the score might be dependant on surviving for a long time, for others it might be to shoot as many 'things' as possible and rack up points.

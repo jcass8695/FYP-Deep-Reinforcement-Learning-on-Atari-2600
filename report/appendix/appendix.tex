@@ -3,70 +3,100 @@
 \begin{center}
     \begin{longtable}{ |c||c|c||c| }
         \hline
-        ALE Format & Game Title & ALE Format & Game Title \\ [0.5ex] 
+        ALE Format       & Game Title      & ALE Format         & Game Title        \\ [0.5ex]
         \hline
         \hline
-        air\_raid & Air Raid & alien & Alien\\ 
+        air\_raid        & Air Raid        & alien              & Alien             \\
         \hline
-        amidar & Amidar & assault & Assault\\ 
+        amidar           & Amidar          & assault            & Assault           \\
         \hline
-        asterix & Asterix & asteroids & Asteroids\\ 
+        asterix          & Asterix         & asteroids          & Asteroids         \\
         \hline
-        atlantis & Atlantis & bank\_heist & Bank Heist\\ 
+        atlantis         & Atlantis        & bank\_heist        & Bank Heist        \\
         \hline
-        battle\_zone & Battle Zone & beam\_rider & Beam Rider\\ 
+        battle\_zone     & Battle Zone     & beam\_rider        & Beam Rider        \\
         \hline
-        berzerk & Berzerk & bowling & Bowling\\ 
+        berzerk          & Berzerk         & bowling            & Bowling           \\
         \hline
-        boxing & Boxing & breakout & Breakout\\ 
+        boxing           & Boxing          & breakout           & Breakout          \\
         \hline
-        carnival & Carnival & centipede & Centipede\\ 
+        carnival         & Carnival        & centipede          & Centipede         \\
         \hline
-        chopper\_command & Chopper Command & crazy\_climber & Crazy Climber\\ 
+        chopper\_command & Chopper Command & crazy\_climber     & Crazy Climber     \\
         \hline
-        defender & Defender & demon\_attack & Demon Attack\\ 
+        defender         & Defender        & demon\_attack      & Demon Attack      \\
         \hline
-        double\_dunk & Double Dunk & elevator\_action & Elevator Action\\ 
+        double\_dunk     & Double Dunk     & elevator\_action   & Elevator Action   \\
         \hline
-        enduro & Enduro & fishing\_derby & Fishing Derby\\ 
+        enduro           & Enduro          & fishing\_derby     & Fishing Derby     \\
         \hline
-        freeway & Freeway & frostbite & Frostbite\\ 
+        freeway          & Freeway         & frostbite          & Frostbite         \\
         \hline
-        gopher & Gopher & gravitar & Gravitar\\ 
+        gopher           & Gopher          & gravitar           & Gravitar          \\
         \hline
-        hero & Hero & ice\_hockey & Ice Hockey\\ 
+        hero             & Hero            & ice\_hockey        & Ice Hockey        \\
         \hline
-        jamesbond & Jamesbond & journey\_escape & Journey Escape\\ 
+        jamesbond        & Jamesbond       & journey\_escape    & Journey Escape    \\
         \hline
-        kangaroo & Kangaroo & krull & Krull\\ 
+        kangaroo         & Kangaroo        & krull              & Krull             \\
         \hline
-        kung\_fu\_master & Kung Fu Master & montezuma\_revenge & Montezuma Revenge\\ 
+        kung\_fu\_master & Kung Fu Master  & montezuma\_revenge & Montezuma Revenge \\
         \hline
-        ms\_pacman & Ms Pacman & name\_this\_game & Name This Game\\ 
+        ms\_pacman       & Ms Pacman       & name\_this\_game   & Name This Game    \\
         \hline
-        phoenix & Phoenix & pitfall & Pitfall\\ 
+        phoenix          & Phoenix         & pitfall            & Pitfall           \\
         \hline
-        pong & Pong & pooyan & Pooyan\\ 
+        pong             & Pong            & pooyan             & Pooyan            \\
         \hline
-        private\_eye & Private Eye & qbert & Qbert\\ 
+        private\_eye     & Private Eye     & qbert              & Qbert             \\
         \hline
-        riverraid & Riverraid & road\_runner & Road Runner\\ 
+        riverraid        & Riverraid       & road\_runner       & Road Runner       \\
         \hline
-        robotank & Robotank & seaquest & Seaquest\\ 
+        robotank         & Robotank        & seaquest           & Seaquest          \\
         \hline
-        skiing & Skiing & solaris & Solaris\\ 
+        skiing           & Skiing          & solaris            & Solaris           \\
         \hline
-        space\_invaders & Space Invaders & star\_gunner & Star Gunner\\ 
+        space\_invaders  & Space Invaders  & star\_gunner       & Star Gunner       \\
         \hline
-        tennis & Tennis & time\_pilot & Time Pilot\\ 
+        tennis           & Tennis          & time\_pilot        & Time Pilot        \\
         \hline
-        tutankham & Tutankham & up\_n\_down & Up N Down\\ 
+        tutankham        & Tutankham       & up\_n\_down        & Up N Down         \\
         \hline
-        venture & Venture & video\_pinball & Video Pinball\\ 
+        venture          & Venture         & video\_pinball     & Video Pinball     \\
         \hline
-        wizard\_of\_wor & Wizard Of Wor & yars\_revenge & Yars Revenge\\ 
+        wizard\_of\_wor  & Wizard Of Wor   & yars\_revenge      & Yars Revenge      \\
         \hline
-        zaxxon & Zaxxon \\
+        zaxxon           & Zaxxon                                                   \\
         \hline
     \end{longtable}
 \end{center}
+
+\section{Experimentation Hyper-Parameters} \label{app:hparams}
+\begin{center}
+    \begin{tabular}{||c|c|c||}
+    \hline
+    Hyper-parameter  & Value & Description \\ [0.5ex]
+    \hline
+    \hline
+    minibatch size & 32 & Size of batch to sample from replay memory. \\
+    \hline
+    replay memory size & 20000 & \\
+    \hline
+    action repeat freq. & 3 & Number of frames to repeat the predicted action. \\
+    \hline
+    $\tau$, target network update freq.  & 5000  & Steps before updating target network weights. \\
+    \hline
+    $\epsilon_{max}$ initial exploration & 1.0   & Initial prob. of taking a random action. \\
+    \hline
+    $\epsilon_{min}$ final exploration & 0.1 & Final minimum prob. of taking a random action. \\
+    \hline
+    $\epsilon_{decay}$, exploration decay & 20000 & Number of steps to decay $\epsilon$ over. \\
+    \hline
+    $\gamma$, discount factor & 0.99 & Q-Learning discount factor. \\
+    \hline
+    $\alpha$, learning rate & 0.00025 & Neural network learning rate. \\
+    \hline
+\end{tabular}
+\end{center}
+
+These hyper-parameters were chosen with influence from (\citet{human}). They have been scaled down from those values to suit our requirements.

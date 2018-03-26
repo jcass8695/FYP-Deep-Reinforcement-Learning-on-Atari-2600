@@ -3,6 +3,7 @@ venv
 __pycache__
 *.pyc
 *.h5
+*.log
 slurm-*.out
 src/data/*
 report/*

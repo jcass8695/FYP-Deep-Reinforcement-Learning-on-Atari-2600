@@ -1,4 +1,4 @@
-\chapter{Design}
+\chapter{Design} \label{ch:design}
 One of the primary objectives of this project is to build a system for comparing the performance of DRL algorithms when applied to agents in the Atari 2600 video game test bed. This chapter discusses the design and implementation of that system. \paragraph{}
 
 We begin with a discussion of the different platforms and tools available to us to aid in the implementation. We will not be building the system completely from scratch, we will require an emulator to host our agents and environments and external libraries to prevent 'reinventing the wheel' when it comes to the programming of the system. We will follow with a broad system overview and then an in-depth look at the system architecture. It is the aim of these sections to leave the reader with a thorough understanding of exactly \textit{how} the system operates. Finally we will close with the reasoning behind the choice of games, Space Invaders and Breakout, and algorithms, Deep Q-Network (DQN), Double Deep Q-Network (2DQN) and Dueling Double Deep Q-Network (3DQN), for the evaluation of our system.
@@ -200,7 +200,7 @@ As we have mentioned previously, the neural network architecture used in the imp
     \label{fig:nnarch}
 \end{figure}
 
-\section{Choice of Games}
+\section{Choice of Games} \label{sec:games}
 The number of games that we could use in our comparisons was limited due to the time constraints outlined in Subsection \ref{subsec:boole}. Each game requires training on 3 different algorithms. Hence we decided to choose two games that were suitably different that we could investigate the adaptability of each algorithm. When we compare the difference of two games, we look at:
 
 \begin{itemize}
@@ -229,7 +229,7 @@ Both games have left and right movement. Space Invaders however, provides an ext
     \end{minipage}
 \end{figure}
 
-\section{Choice of Algorithms}
+\section{Choice of Algorithms} \label{sec:algos}
 DQN, 2DQN and 3DQN as outlined in Chapters 2 \& 3 form a family of algorithms, brought together by their adaptation of the Q-Learning algorithm to Deep Learning. We selected DQN, as it was the first algorithm to spark the field of DRL. It is very well documented for this reason and there were many resources to aid in learning how it worked. 2DQN is the successor to DQN and 3DQN is the successor to 2DQN, thus they provided a natural basis for comparison. \paragraph{}
 
 We considered implementing A3C, as it is the current state of the art algorithm for this application and it would be interesting to see what results we could obtain over the aforementioned algorithms. However we eventually decided against it due to the time constraints mentioned in previous sections. Implementing A3C would be time consuming due to the fact that it requires co-ordinating parallel workers in updating a central neural network, which presents a significant implementation challenge that we may have struggled to overcome within the project deadlines.
