@@ -95,7 +95,7 @@ class Agent():
                 if step % 5000 == 0:
                     self.model.save_model()
                     self.model.save_hyperparams()
-                    self.save_replaymemory()
+                    # self.save_replaymemory()
 
                 # If using a target model check for weight updates
                 if hasattr(self.model, 'tau'):
@@ -113,6 +113,7 @@ class Agent():
 
                 lives_after = self.ale.lives()
                 if lives_after < lives_before:
+                    gameover = True  # Taking advice from dude on reddit
                     reward = -1
 
                 if self.ale.game_over():
