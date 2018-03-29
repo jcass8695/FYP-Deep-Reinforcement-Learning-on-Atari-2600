@@ -1,1 +1,38 @@
 \chapter{Conclusion}
+In Section \ref{sec:sys_overview} we outlined three design goals for our system. In Section \ref{sec:eval_objectives} we outlined three goals for our experimentation. In this chapter we will restate those objectives and discuss whether or not we feel each goal was achieved. We will close with a discussion on what we felt we have learned from this project and the potential for future works.
+\section{Goals Revisited}
+\subsection{Design Goals}
+\begin{enumerate}
+	\item Support any game that the ALE does with no changes required in the code.
+	\item Aid the implementation of additional algorithms for future developers.
+	\item Provide a suite of useful research tools.
+\end{enumerate}
+It is our opinion that all of our design goals were achieved. Our system \textit{will} work with all games that the ALE supports. We have aided the implementation of future algorithms by providing the \texttt{NN} base class, explained in Section \ref{sec:sys_overview}. The system comes equipped with various tools outlined in Section \ref{sec:sys_overview} - in our own experimentation we made use of all of these features regularly.
+
+\subsection{Experimentation Goals}
+\begin{enumerate}
+	\item Compare the performance of AI agents trained in Atari 2600 video game environments using 3 different DRL algorithms.
+	\item Test the flexibility and rigour of our system.
+	\item Achieve comparable results to that of published works.
+\end{enumerate}
+We feel that we have achieved our first and second experimentation goals and fell short of our third goal. \paragraph{}
+
+Through our case study experiments, we have successfully compared the performance of two AI agents in the Space Invaders and Breakout Atari 2600 video game environments. We have gathered and presented the results of both case studies in Section \ref{sec:results}. \paragraph{}
+
+The flexibility and stability of our system have been thoroughly tested. We have smoothly applied our implemented algorithms on two different games with no code changes. As mentioned in Section \ref{sec:setup}, the system was run for days on end, resulting in no crashes thus testifying to the it's stability. \paragraph{}
+
+Finally, our third goal was to attempt to achieve similar or comparable results to that of published works in (\citet{human,doubleq,dueling}). We have deemed that we have failed in this goal, owing primarily to the constraints of time and resources. Published works have trained their networks for much longer than our own - up to 50 million frames. Thus the resolution of their results is much broader. Where we have plotted our results over 20-40 epochs, where we treat an epoch as 25000 weight updates, (\citet{human}) have plotted their graphs to 200 epochs, where they treat an epoch as 50000 updates. Each of the aforementioned papers publish their final results only in tabular format. Thus it is difficult and would likely prove inaccurate to draw comparisons with our final results. \paragraph{}
+
+In terms of resources, we have mentioned previously in Chapter \ref{ch:design} that much of our implementation such as training time, epoch duration and replay memory size are scaled down to suit our time and resource capabilities. It is likely that these actions negatively impacted our results - however they were a necessity.
+
+\section{Learning Outcomes}
+We have learned much throughout the duration of this project. We now have a solid foundation of the theory of RL and a broad understanding and an appreciation for the relatively new field of DRL; it's landmark achievements, current state of the art and potential future endeavours. \paragraph{}
+
+Furthermore, we feel that our Python programming and overall software development skills have improved vastly from the design of our system from the ground up.
+
+\section{Future Work}
+There are a number of avenues that a future user of our system could explore. An obvious addition would be to implement different algorithms than those chosen in our experimentation. Of particular interest to us, we would recommend DQN with a target network, for the reasons discussed in Section \ref{sec:discussion}, A3C and any new state of the art algorithms that appear in the future. \paragraph{}
+
+One interesting study would be to investigate potential efficiency improvements in the system. We would recommend exploring the feasibility of parallelization of the system, so that the network training could be distributed across multiple machines. This investigation would go hand-in-hand with an A3C algorithm implementation, as it is parallel by definition. This would be a worthwhile investigation, as it could aid in reducing the time constraint on network training that plagued this project throughout. It would be a significant technical undertaking, as it would require a third-party to become very familiar with a system that they are new to and did not build themselves. \paragraph{}
+
+To further test the portability of our system, we would be interested to know if the range of environments could be extended to other platforms apart from the Atari 2600. Consoles such as the Gameboy \cite{gameboy} are similar to the Atari 2600 in terms of low-resolution graphics by today's standard, but provide enough of an improvement on the Atari 2600 to warrant investigation. The application of DRL algorithms to Gameboy video games is yet an unpublished field. The closest application that we could find was a system called Piglet \cite{piglet}, which uses other non-DRL techniques to produce AI agents.
