@@ -51,18 +51,35 @@ def print_results(game, mode):
     print(np.load('./data/{1}/{0}_loss_{1}.npy'.format(game, mode)))
 
 
-def plot_results(game, mode, feature):
-    if feature not in ['avgscore', 'avgframes', 'loss']:
-        print('Feature must be one of avgscore, avgframes, loss')
-        return
-
+def plot_results(game, mode):
     try:
-        ydata = np.load('./data/{1}/{0}_{2}_{1}.npy'.format(game, mode, feature))
+        ydata = np.load('./data/{1}/{0}_{2}_{1}.npy'.format(game, mode, 'avgscore'))
         xdata = [i + 1 for i in range(len(ydata))]
+        plt.figure(1)
+        plt.title('Average Score over Time')
+        plt.xlabel('Epochs')
+        plt.ylabel('Average Score')
         plt.plot(xdata, ydata, 'r')
+
+        ydata = np.load('./data/{1}/{0}_{2}_{1}.npy'.format(game, mode, 'avgframes_surv'))
+        xdata = [i + 1 for i in range(len(ydata))]
+        plt.figure(2)
+        plt.title('Average Frames Survived over Time')
+        plt.xlabel('Epochs')
+        plt.ylabel('Average Frames')
+        plt.plot(xdata, ydata, 'r')
+
+        ydata = np.load('./data/{1}/{0}_{2}_{1}.npy'.format(game, mode, 'loss'))
+        xdata = [i + 1 for i in range(len(ydata))]
+        plt.figure(3)
+        plt.title('Average Network Loss over Time')
+        plt.xlabel('Epochs')
+        plt.ylabel('Average Loss')
+        plt.plot(xdata, ydata, 'r')
+
         plt.show()
     except FileNotFoundError:
-        print('No {} data found to plot for {} {}'.format(feature, game, mode))
+        print('Error finding data to plot')
         raise KeyboardInterrupt
 
 
