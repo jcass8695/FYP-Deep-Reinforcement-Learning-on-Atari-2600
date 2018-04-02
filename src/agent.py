@@ -1,3 +1,4 @@
+from traceback import print_exc
 from collections import deque
 import bz2
 import pickle
@@ -22,16 +23,23 @@ class Agent():
         self.ale.loadROM(str.encode('./roms/{}.bin'.format(self.name)))
         self.action_list = list(self.ale.getMinimalActionSet())
         self.frame_shape = np.squeeze(self.ale.getScreenGrayscale()).shape
-        self.frame_buffer = deque(maxlen=3)
         if test:
             self.name += '_test'
+
+        if 'space_invaders' in self.name:
+            # Account for blinking bullets
+            self.frameskip = 2
+        else:
+            self.frameskip = 3
+
+        self.frame_buffer = deque(maxlen=self.frameskip + 1)
 
         if load_model:
             self.load_replaymemory()
         else:
             self.replay_memory = ReplayMemory(20000, 32)
 
-        model_input_shape = self.frame_shape + (3,)
+        model_input_shape = self.frame_shape + (self.frameskip+1,)
         model_output_shape = len(self.action_list)
 
         if agent_type == 'dqn':
@@ -66,6 +74,7 @@ class Agent():
         print('{} Loaded!'.format(' '.join(self.name.split('_')).title()))
         print('Displaying: ', display)
         print('Frame Shape: ', self.frame_shape)
+        print('Frame Skip: ', self.frameskip)
         print('Action Set: ', self.action_list)
         print('Model Input Shape: ', model_input_shape)
         print('Model Output Shape: ', model_output_shape)
@@ -105,11 +114,13 @@ class Agent():
                     else:
                         self.model.tau -= 1
 
-                # Play for 3 frames and stack 'em up
+                # Frame skipping technique https://danieltakeshi.github.io/2016/11/25/frame-skipping-and-preprocessing-for-deep-q-networks-on-atari-2600-games/
                 lives_before = self.ale.lives()
-                for _ in range(3):
-                    reward = self.ale.act(action)
-                    self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
+                for _ in range(self.frameskip):
+                    self.ale.act(action)
+
+                reward = self.ale.act(action)
+                self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
 
                 lives_after = self.ale.lives()
                 if lives_after < lives_before:
@@ -135,7 +146,7 @@ class Agent():
 
                 loss += self.model.replay_train()
         except:
-            # print_exc()
+            print_exc()
             self.model.save_model()
             self.model.save_hyperparams()
             self.save_replaymemory()
@@ -178,6 +189,8 @@ class Agent():
             state = np.stack(self.frame_buffer, axis=-1)
             action = self.model.predict_action(state, evaluating)
 
+            for _ in range(self.frameskip):
+                self.ale.act(action)
             # Remember, ale.act returns the increase in game score with this action
             total_score += self.ale.act(action)
 
