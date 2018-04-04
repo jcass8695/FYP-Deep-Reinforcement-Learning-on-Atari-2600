@@ -18,7 +18,6 @@ class DeepQN(NN):
 
     def predict_action(self, state, evaluating=False):
         qvalues = self.qmodel.predict(np.expand_dims(state, 0), batch_size=1)
-
         # Translate the index of the highest Q value action to an action
         # in the games set. This is required as the games action set may look
         # like this: [0, 1, 2, 3, 6, 17, 18]

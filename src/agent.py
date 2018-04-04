@@ -37,7 +37,7 @@ class Agent():
         if load_model:
             self.load_replaymemory()
         else:
-            self.replay_memory = ReplayMemory(20000, 32)
+            self.replay_memory = ReplayMemory(100000, 32)
 
         model_input_shape = self.frame_shape + (self.frameskip+1,)
         model_output_shape = len(self.action_list)
@@ -104,7 +104,6 @@ class Agent():
                 if step % 5000 == 0:
                     self.model.save_model()
                     self.model.save_hyperparams()
-                    # self.save_replaymemory()
 
                 # If using a target model check for weight updates
                 if hasattr(self.model, 'tau'):
@@ -191,6 +190,7 @@ class Agent():
 
             for _ in range(self.frameskip):
                 self.ale.act(action)
+
             # Remember, ale.act returns the increase in game score with this action
             total_score += self.ale.act(action)
 

@@ -41,10 +41,11 @@ def main():
     games_to_play = args.evaluation_games
     for epoch in range(args.training_epochs):
         try:
+            print('Training Epoch: ', epoch + 1)
             running_score = 0
             frames_survived = 0
-            print('Training Epoch: ', epoch + 1)
             avg_loss = agent.training(args.training_steps)
+            agent.save_replaymemory()
             for _ in range(games_to_play):
                 agent_scores = agent.simulate_intelligent(evaluating=True)
                 running_score += agent_scores[0]
