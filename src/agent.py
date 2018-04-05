@@ -33,7 +33,6 @@ class Agent():
             self.frameskip = 3
 
         self.frame_buffer = deque(maxlen=self.frameskip + 1)
-
         if load_model:
             self.load_replaymemory()
         else:
@@ -90,6 +89,7 @@ class Agent():
         loss = []
 
         # Initialize frame buffer
+        self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
@@ -181,6 +181,7 @@ class Agent():
         done = False
         total_score = 0
 
+        self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
