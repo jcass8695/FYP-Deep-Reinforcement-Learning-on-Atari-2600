@@ -1,1 +1,321 @@
 \chapter{Evaluation}
+In this chapter, we concretely define our exact objectives for the experimentation aspect of this
+project. We have implemented the system, which we use in our experimental apparatus and now wish to
+carry out two case study based experiments. An inventory of our full experimental setup will be
+given and we will close with the results of our case studies and a discussion of these results. What
+we achieve, what we do not achieve and how our observations compare to published works.
+
+\section{Objectives} \label{sec:eval_objectives}
+The primary objective of this experiment is to compare the performance of AI agents that are trained
+in Atari 2600 video game environments using 3 different DRL algorithms. We take a case study based
+approach on the two games introduced in Section \ref{sec:games}, Space Invaders and Breakout. The
+algorithms we use were introduced in Section \ref{sec:algos}, DQN, 2DQN and 3DQN. We compare the
+effectiveness of these 3 algorithms using the metrics outlined in Section \ref{subsec:performance}.
+\paragraph{}
+
+The secondary outcomes of this experimentation are twofold. Firstly, it will test the flexibility
+and stability of our system as we subject it to a range of games and algorithms. Secondly, it is our
+hope that when we compare our results to those of published works, such as
+\citet{human,doubleq,dueling}, we can achieve similar results with our more limited resources.
+\paragraph{}
+
+\subsection{Performance Metrics} \label{subsec:performance}
+In Section \ref{subsec:metrics} we introduced a choice selection of the more popular performance
+metrics used in previously published works as well as in the current state of the art. For our
+experiments, we gather the average game score and average frames survived for each set of evaluation
+games. We also gather the average network loss for each training epoch to visualize the network's
+learning performance over time. Finally, we record footage of the agent playing the game after
+landmark stages of the training process: 500000, 750000 and 1 million steps. This is perhaps less of a
+concrete, numerical metric but we believe that it gives context to the numbers and is to be used
+more as a visual aid.
+
+\section{Experimental Setup} \label{sec:setup}
+We use Trinity's GPU cluster, Boole, to run our system. Each job submitted to Boole consists of a
+game-algorithm pair. This equates to 3 jobs/case study. Our system we have discussed in great detail
+in Chapter \ref{ch:design}, however we will give a brief summary of how it will operate for our case
+studies.
+
+\begin{enumerate}
+	\item The system is provided a game-algorithm pair on the command line when run.
+	\item The agent will play the game for an epoch - 25,000 steps.
+	\item After each step a gradient descent update is applied to the neural network, according to
+	      the specified algorithm.
+	\item After an epoch has completed, the agent plays the game 10 times. The scores and frames
+	      survived are averaged for each game and saved to disk.
+	\item Continue this loop until the 2 day limit on Boole is reached or the agent completes 20
+	      epochs.
+\end{enumerate}
+
+Due to the constraints of time and resources discussed in Chapter \ref{ch:design}, we make the decision to scale down our hyper-parameters from the published values that we have taken inspiration from in (\citet{deepmind1,human,doubleq,dueling}). Our choice of scaling factor comes from our initial goal to train the agents for a minimum of 1 million steps. The standard in the aforementioned papers is to train for a minimum of 50 million steps, hence we scale our replay memory size and exploration rate decay $\epsilon_{decay}$ down by a factor of 50. We halve our training epoch length and target network update frequency $\tau$ to 25000 and 5000 respectively and cut the number of evaluation games from 30 to 10. A factor of 50 would be too extreme for these parameters.
+\paragraph{}
+
+We run the system on Boole, resubmitting jobs every 2 days from check-pointed positions thanks to
+the systems state-saving functionality. The objective is to train each game-algorithm pair for a
+minimum of 1 million steps. After this we can visualize our results by using the Python graphing
+module, Matplotlib \cite{matplotlib} and perform our comparisons as stated previously.
+
+\section{Experimental Results} \label{sec:results}
+We present the final results of our experiments in tabular form in Table \ref{table:siscores} and
+\ref{table:brscores}. These tables show the metrics collected for the evaluation run after 40 epochs of training. We present plots over time for each metric in Figures \ref{fig:score_plots}, \ref{fig:frames_plots} and \ref{fig:loss_plots}. \paragraph{}
+\begin{table}[h]
+	\centering
+	\begin{tabular}{| c || c | c |}
+		\hline
+		\multicolumn{3}{|c|}{Space Invaders}                       \\
+		\hline
+		     & Final Average Score & Final Average Frames Survived \\
+		\hline
+		DQN  & 118                 & 2700                          \\
+		\hline
+		2DQN & 236                 & 2679                          \\
+		\hline
+		3DQN & 90.5                & 2176                          \\
+		\hline
+	\end{tabular}
+	\caption{Space Invaders Final Results}
+	\label{table:siscores}
+\end{table}
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{| c || c | c | c |}
+		\hline
+		\multicolumn{3}{|c|}{Breakout}                             \\
+		\hline
+		     & Final Average Score & Final Average Frames Survived \\
+		\hline
+		DQN  & 0                   & 0                             \\
+		\hline
+		2DQN & 0                   & 0                             \\
+		\hline
+		3DQN & 0.5                 & 976                           \\
+		\hline
+	\end{tabular}
+	\caption{Breakout Final Results}
+	\label{table:brscores}
+\end{table}
+
+In this Section we will give a comparison between DQN, 2DQN and 3DQN, based on the 3 different metrics outlined in Section \ref{subsec:performance}. Our immediate impression from the plots is that our agents did not perform as well as we would have hoped. The data for average score and average frames survived in both case studies is very noisy, showing no clear and obvious upward trends. 
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_si_dqn}
+		\caption{Space Invaders DQN}
+		\label{subfig:score_si_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_si_2dqn}
+		\caption{Space Invaders 2DQN}
+		\label{subfig:score_si_2dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_si_3dqn}
+		\caption{Space Invaders 3DQN}
+		\label{subfig:score_si_3dqn}
+	\end{subfigure}%
+	\\
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_br_dqn}
+		\caption{Breakout DQN}
+		\label{subfig:score_br_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_br_2dqn}
+		\caption{Breakout 2DQN}
+		\label{subfig:score_br_2dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{score_br_3dqn}
+		\caption{Breakout 3DQN}
+		\label{subfig:score_br_3dqn}
+	\end{subfigure}
+	\caption{Average Score Plots for Space Invaders \& Breakout}
+	\label{fig:score_plots}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_si_dqn}
+		\caption{Space Invaders DQN}
+		\label{subfig:frames_si_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_si_2dqn}
+		\caption{Space Invaders 2DQN}
+		\label{subfig:frames_si_2dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_si_3dqn}
+		\caption{Space Invaders 3DQN}
+		\label{subfig:frames_si_3dqn}
+	\end{subfigure}
+	\\
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_br_dqn}
+		\caption{Breakout DQN}
+		\label{subfig:frames_br_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_br_2dqn}
+		\caption{Breakout 2DQN}
+		\label{subfig:frames_br_2dqn}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{frames_br_3dqn}
+		\caption{Breakout 3DQN}
+		\label{subfig:frames_br_3dqn}
+	\end{subfigure}
+	\caption{Average Frames Survived Plots for Space Invaders \& Breakout}
+	\label{fig:frames_plots}
+\end{figure}
+
+Our video footage further substantiates our claim. It is very obvious from watching the agent's gameplay that it makes very little progress in learning good game behaviour. The Space Invaders agent across all three algorithms fails to persistently dodge enemy bullets and track  the line of enemy ships. The Breakout agent does not recognize the ball at all and simply stays in the corner of the game screen, as the ball's first action is always to move to either corner. It does not learn to track the movement of the ball or learn the gameplay mechanic of returning the ball to hit the blocks. See Section \ref{sec:video_analysis} for further discussion on the accompanying video footage. \paragraph{}
+
+After a similar amount of training time, the agents in (\citet{human,doubleq,dueling}) that we wish to compare against showed significantly more growth in average score. We compare the results of our DQN agent with (\citet{human}), our 2DQN agent with (\citet{doubleq}) and our 3DQN agent with (\citet{dueling}). \paragraph{}
+
+\subsection{The High Average Loss of DQN} \label{sec:high_loss}
+Before comparing our results, we will first explore the abnormally high average loss values for the DQN implementation of both case studies, as this was a problem unique to DQN. Loss was around the values of $10^{21}$ and $10^{13}$ in Space Invaders and Breakout respectively with very little reduction over time. This is indicative of an exploding gradient issue. Exploding gradient is caused when the gradient derivatives of the majority of nodes in a network are $>1$. As the Back Propagation algorithm is additive for each node in the graph, networks with many layers/nodes and individual gradients $>1$ can experience exploding gradients \paragraph{}
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_si_dqn}
+		\caption{Space Invaders DQN}
+		\label{subfig:loss_si_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_si_2dqn}
+		\caption{Space Invaders 2DQN}
+		\label{subfig:loss_si_2dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_si_3dqn}
+		\caption{Space Invaders 3DQN}
+		\label{subfig:loss_si_3dqn}
+	\end{subfigure}%
+	\\
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_br_dqn}
+		\caption{Breakout DQN}
+		\label{subfig:loss_br_dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_br_2dqn}
+		\caption{Breakout 2DQN}
+		\label{subfig:loss_br_2dqn}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{loss_br_3dqn}
+		\caption{Breakout 3DQN}
+		\label{subfig:loss_br_3dqn}
+	\end{subfigure}
+	\caption{Average Loss Plots for Space Invaders \& Breakout. Note the exponential scale on the DQN y-axis}
+	\label{fig:loss_plots}
+\end{figure}
+
+There are a number of standard techniques for overcoming exploding gradient problems in Deep Learning. Adding regularization terms imposes penalties on high weight updates. In Equation \ref{equ:regularization} we give the L2 or Ridge Regularization addition to a Mean Squared Error Loss Function as an example. $\lambda$ controls the  bias of the weight vector to lower values.
+
+\begin{align}
+	\label{equ:regularization}
+	\sum^{n}_{i=1}(y_{i} - \sum^{p}_{j}x_{ij}w_{j})^{2} + \lambda \sum^{p}_jw^{2}_{j}
+\end{align}
+
+A second method is known as gradient clipping. In the same way that our reward clipping clamps the reward to the range $[-1, 1]$, we could do the same to individual gradients. \paragraph{}
+
+The reason for our exploding gradient problem, we hypothesize, is that we did not use a target network in the implementation of this algorithm. As discussed in Section \ref{sec:improvements}, a target network can vastly improve the stability of the learning process by reducing the overestimation of Q-values and decreasing the likelihood of a diverging solution; exactly the dilemma in this case. In Figure \ref{fig:qvalues} we present a sample Space Invaders DQN and 2DQN (which uses a target network) Q-Value output for approximately the same state. We can see exactly how our network is grossly overestimating Q-values by comparing the two.
+
+\begin{figure}[H]
+	\centering
+	$[4.0334538^{11}, 4.7766494^{11}, 3.7761424^{11}, 4.2299726^{11}, 4.0448184^{11}, 3.3483758^{11}]$ \\
+	$[0.265942,  0.26520956,  0.26681688,  0.2608409, 0.26903862,  0.27122742]$
+	\caption{Above: Output Q-values from the Space Invaders DQN implementation \\
+		Below: Output Q-Values from the Space Invaders 2DQN implementation. Both values were taken at approximately the same state for a fair comparison.}
+	\label{fig:qvalues}
+\end{figure}
+
+To further corroborate our hypothesis, (\citet{human}) conducted three further variants of their DQN experiment on five games:
+\begin{itemize}
+	\item With replay memory and without target network
+	\item Without replay memory and with target network
+	\item Without replay memory and without target network
+\end{itemize}
+
+The results of these are compared with the full implementation in Extended Data Table 3 of that paper. The agent had a 25\% drop in score in Breakout and 24\% drop in Space Invaders in the no target network test. \paragraph{}
+
+\subsection{Comparison to Published Works}
+As mentioned above, our results are well below those of published works and seem to show little to no correlation. For our DQN algorithm, we would expect Space Invaders to be reaching a score of 800-1000 as is accomplished by the agent in (\citet{human}). Although there are no progress graphs to show the learning progress of Space Invaders or Breakout for 2DQN in (\citet{doubleq}), they do however show graphs for Wizard of Wor and Asterix. These games show definite progress in the stages that our experiments finished at in terms of training time. There are no progress graphs in (\citet{dueling}), however it is a safe assumption to make that our results are not in line with theirs, as 3DQN is an improvement on DQN and 2DQN. \paragraph{}
+
+After a thorough code review, we theorize that the problems lie with the decision we made to scale down the parameters of the experiments, not with our implementation of the system or algorithm logic. As discussed in Section \ref{sec:setup}, we down-scale several hyper-parameters from their published values to meet our requirements. \paragraph{}
+
+We made an assumption that to facilitate our project constraints, it would be possible to shortcut the training of our agents by simply linearly scaling the scope of the original experiments. We postulate that the lost time spent exploring the environment due to the reduction of $\epsilon_{decay}$ is the cause of our agents' tendency to stay in one location, especially prevalent in the Breakout video footage. By losing out on the opportunity to take more random actions, the agent and the neural networks of our algorithms experience less states and are likely caught in a sub-optimal local minimum. If this is true, then further training after $\epsilon$ reaches $\epsilon_{min}$ would appear to be fruitless and a waste of time, as we would effectively be circling this local minimum. \paragraph{}
+
+This could also be a factor in the reason why the average loss of our 2DQN and 3DQN algorithms are so low yet score performance is lacking - the agent is exploiting a very sub-optimal and narrow minded policy, thus it experiences the same states and the network outputs the same Q-Values over and over again. \paragraph{}
+
+As published in the Extended Table 3 of (\citet{human}) that we referred to in Section \ref{sec:high_loss}, the scores of each of the five tested games were reduced dramatically when the replay memory was removed. We summarize the changes in Table \ref{table:replaymem}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Game           & With target network & Without target network \\
+		\hline
+		\hline
+		Breakout       & 97\%                & 99\%                   \\
+		\hline
+		Space Invaders & 66\%                & 72\%                   \\
+		\hline
+	\end{tabular}
+	\caption{Summary of the percentage reduction in score caused by the removal of replay memory.}
+	\label{table:replaymem}
+\end{table}
+
+This highlights the importance of replay memory in the performance of the agents. We reduced the capacity of our replay memory significantly, hence we can estimate that this had a large bearing on the disappointing learning of our agents. Although we had a strict resource constraint imposed by Boole, as discussed in Section \ref{sec:replaymem}, these results cannot be ignored. In hindsight, we should have put further research into the exact limitations of our allocated physical memory with the Boole system administrator. \paragraph{}
+
+To investigate whether or not parameterization was the crux of our problem, we requested access to a Boole partition that would allow our system to run for more than 2 days. Our initial estimates of achieving a minimum of 1 million frames for each case study was, in hindsight, conservative. We now know that this amount of training time is in fact feasible within the time frame of approximately one week for one algorithm. Our time constraints arise when we have to train 3 algorithms per case study. Thus, we decide to train Space Invaders and Breakout using the 3DQN algorithm with an updated set of hyper-parameters to see if the performance of our agents improve with less resource constraints. Our updated hyper-parameters are as follows:
+
+\begin{itemize}
+	\item Number of evaluation games from $10 \Rightarrow 30$
+	\item Replay memory capacity from $20000 \Rightarrow 100000$
+	\item $\epsilon_{decay}$ from $20000 \Rightarrow 100000$
+\end{itemize}
+
+We train these agents for 1 million steps each. The value of 100000 items for the replay memory capacity was found using an informal method of trial and error, whereby the job was submitted to Boole and if the capacity was too high the job would be kicked, we decrease the capacity and repeat. \paragraph{}
+
+It was found that after 40 training epochs, the agent did not appear to have improved much over the original implementation. It is clear that the hyper-parameter values chosen by DeepMind were not randomly generated, and a good deal of optimization work was performed behind the scenes. (\citet{human}) confirm this, stating that all hyper-parameters were selected by performing an informal search on the games Pong, Breakout, Seaquest, Space Invaders and Beam Rider.
+
+\subsection{Further Video Footage Analysis} \label{sec:video_analysis}
+\subsubsection{Space Invaders}
+The DQN agent shows high amount of movement between the edges of the game screen. It is not immediately apparent to us \textit{why} it is doing this, there does not seem to be any strategy or reason to it. We consider it to be a result of the abnormally high average loss value discussed previously, the agent cannot determine the appropriate action to take in any given state so it's actions appear to us as random. The agent begins to show signs of dodging. If the agent is stationary and a bullet is oncoming, it may twitch slightly, but it is still sometimes too slow to react. As we will see in proceeding sections, the agent believes that shooting at all times is the best policy, and no concept of hunting is apparent. \paragraph{}
+
+The 2DQN agent is quite deflating - it shows no signs of dodging or hunting. It remains stationary in the starting position and shoots for all actions, with negligible movement. It does not show any signs of dodging enemy bullets. \paragraph{}
+
+The 3DQN agent shows movement similar to the DQN agent - seemingly random with no definite hunting pattern as it shoots randomly while moving across the screen. It displays some dodging, similar to the DQN agent there are cases where it is still to slow to react.
+
+\subsubsection{Breakout}
+A common theme among all Breakout agents is to move directly from the centre to a corner of the screen after each game reset. This is because the starting trajectory for the ball is always to either of the two corners, selected seemingly randomly. Thus, if the agent chooses the correct corner, it is likely to get a score of at least 1. It is likely that this has been caused by the small amount of exploration the agent accomplishes, as discussed in the previous section. As with the Space Invaders agents, there are no signs of hunting beyond moving directly to the corner.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{breakout_corners}
+	\caption{The 2DQN Breakout agent moving directly to the right corner. On this occasion the ball's starting trajectory was to the right, and the agent managed to accumulate a few points.}
+\end{figure}

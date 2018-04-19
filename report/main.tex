@@ -16,7 +16,7 @@
 %   It will be used for the title page and for the embedded PDF information
 %----------------------------------------------------------------------------------------
 
-\newcommand{\thesistitle}{An Investigation into Deep Reinforcement Learning} % Your thesis title, this is used in the title and abstract
+\newcommand{\thesistitle}{An Investigation into Deep Reinforcement Learning in Atari 2600 Video Games} % Your thesis title, this is used in the title and abstract
 \newcommand{\degree}{BAI (Computer Engineering)} % Your degree name, this is used in the title page and abstract
 \newcommand{\typeofthesis}{Final Year Project} % dissertation, Final Year Project, report, etc.
 \newcommand{\authorname}{Jack Cassidy} % Your name, this is used in the title page and PDF stuff
@@ -75,11 +75,13 @@
 
 %% Useful packages
 \usepackage{amsmath}
+% \numberwithin{equation}{section}
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
 \usepackage[pdftex]{graphicx}
 \usepackage{wrapfig}
 \usepackage[colorlinks=true, allcolors=black]{hyperref}
 \usepackage{caption} % if no caption, no colon
+\usepackage{subcaption}
 \usepackage{sfmath} %use sans-serif in the maths sections too
 \usepackage[parfill]{parskip}    % Begin paragraphs with an empty line rather than an indent
 \usepackage{setspace} % to permit one-and-a-half or double spacing
@@ -111,11 +113,10 @@
 %% It is not a requirement of the university that the font should be sans-serif, but
 %% the Mechanical engineers require it. Comment out the following line to disable it
 \renewcommand{\familydefault}{\sfdefault} %use the sans-serif font as default
-
 %% If you're not using sans-serif, consider using Palatino instead of the LaTeX standard
 %\usepackage{mathpazo} % Use the Palatino font by default if you prefer it to Computer Modern
 
-\renewcommand{\theequation}{\arabic{equation}} %% use continuous equation numbers
+% \renewcommand{\theequation}{\arabic{equation}} %% use continuous equation numbers
 
 %% Format Chapter headings appropriately
 \usepackage{titlesec}
