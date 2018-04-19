@@ -32,13 +32,13 @@ class Agent():
         else:
             self.frameskip = 3
 
-        self.frame_buffer = deque(maxlen=self.frameskip + 1)
-        if load_model:
+        self.frame_buffer = deque(maxlen=4)
+        if load_model and not record:
             self.load_replaymemory()
         else:
-            self.replay_memory = ReplayMemory(100000, 32)
+            self.replay_memory = ReplayMemory(500000, 32)
 
-        model_input_shape = self.frame_shape + (self.frameskip+1,)
+        model_input_shape = self.frame_shape + (4,)
         model_output_shape = len(self.action_list)
 
         if agent_type == 'dqn':
@@ -110,7 +110,7 @@ class Agent():
                 if hasattr(self.model, 'tau'):
                     if self.model.tau == 0:
                         self.model.update_target_model()
-                        self.model.tau = 5000
+                        self.model.tau = 10000
                     else:
                         self.model.tau -= 1
 
