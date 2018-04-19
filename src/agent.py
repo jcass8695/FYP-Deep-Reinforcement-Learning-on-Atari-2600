@@ -1,5 +1,5 @@
-from traceback import print_exc
 from collections import deque
+from datetime import datetime
 import bz2
 import pickle
 from ale_python_interface import ALEInterface
@@ -81,14 +81,14 @@ class Agent():
 
     def training(self, steps):
         '''
-        Trains the agent for :training_interval_frames.
+        Trains the agent for :steps number of weight updates.
 
         Returns the average model loss
         '''
 
         loss = []
 
-        # Initialize frame buffer
+        # Initialize frame buffer. np.squeeze removes empty dimensions e.g. if shape=(210,160,__)
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
         self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
@@ -104,6 +104,7 @@ class Agent():
                 if step % 5000 == 0:
                     self.model.save_model()
                     self.model.save_hyperparams()
+                    self.save_replaymemory()
 
                 # If using a target model check for weight updates
                 if hasattr(self.model, 'tau'):
@@ -120,8 +121,8 @@ class Agent():
 
                 reward = self.ale.act(action)
                 self.frame_buffer.append(np.squeeze(self.ale.getScreenGrayscale()))
-
                 lives_after = self.ale.lives()
+
                 if lives_after < lives_before:
                     gameover = True  # Taking advice from dude on reddit
                     reward = -1
@@ -145,7 +146,6 @@ class Agent():
 
                 loss += self.model.replay_train()
         except:
-            print_exc()
             self.model.save_model()
             self.model.save_hyperparams()
             self.save_replaymemory()
@@ -170,14 +170,10 @@ class Agent():
                 print(reward)
 
         frames_survived = self.ale.getEpisodeFrameNumber()
-        print('Game Over')
-        print('Frames Survived: ', frames_survived)
-        print('Score: ', total_reward)
         self.ale.reset_game()
         return total_reward, frames_survived
 
     def simulate_intelligent(self, evaluating=False):
-        print('Simulating game intelligently')
         done = False
         total_score = 0
 
@@ -201,22 +197,23 @@ class Agent():
                 done = True
 
         frames_survived = self.ale.getEpisodeFrameNumber()
-        print('Game Over')
-        print('Frames Survived: ', frames_survived)
-        print('Score: ', total_score)
+        print('   Game Over')
+        print('   Frames Survived: ', frames_survived)
+        print('   Score: ', total_score)
+        print('===========================')
         self.ale.reset_game()
         return total_score, frames_survived
 
     def save_replaymemory(self):
         with bz2.BZ2File('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'wb') as f:
             pickle.dump(self.replay_memory, f, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Saved replay memory')
+            print('Saved replay memory at ', datetime.now())
 
     def load_replaymemory(self):
         try:
             with bz2.BZ2File('./data/{}/{}_replaymem.obj'.format(self.agent_type, self.name), 'rb') as f:
                 self.replay_memory = pickle.load(f)
-                print('Loaded replay memory')
+                print('Loaded replay memory at ', datetime.now())
         except FileNotFoundError:
             print('No replay memory file found')
             raise KeyboardInterrupt

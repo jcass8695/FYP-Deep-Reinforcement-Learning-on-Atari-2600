@@ -14,9 +14,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 parser = ArgumentParser()
 parser.add_argument('game', help='Select which game to play', type=str, choices=util.get_supported_games())
 parser.add_argument('deep_learning_mode', help='The type of Deep Learning to use', type=str, choices=['dqn', 'double', 'duel'])
-parser.add_argument('training_steps', default=25000, nargs='?', help='The number of steps (3 frames), to run during a training epoch?', type=int)
-parser.add_argument('training_epochs', default=20, nargs='?', help='The number of training epochs to run', type=int)
-parser.add_argument('evaluation_games', default=10, nargs='?', help='The number of games to evaluate on', type=int)
+parser.add_argument('training_steps', default=25000, nargs='?', help='The number of steps to run during a training epoch. Default 25000', type=int)
+parser.add_argument('training_epochs', default=20, nargs='?', help='The number of training epochs to run. Default 20', type=int)
+parser.add_argument('evaluation_games', default=10, nargs='?', help='The number of games to evaluate on. Default 10', type=int)
 parser.add_argument('-t', '--test_run', help='Treat this run as a test run? Use when trying new hyperparams etc', action='store_true')
 parser.add_argument('-l', '--load_model', default=True, help='Use this flag to start with a new model', action='store_false')
 parser.add_argument('-d', '--display', help='Display video output of game?', action='store_true')
@@ -42,16 +42,22 @@ def main():
     for epoch in range(args.training_epochs):
         try:
             print('Training Epoch: ', epoch + 1)
+            print('************************')
             running_score = 0
             frames_survived = 0
             avg_loss = agent.training(args.training_steps)
-            agent.save_replaymemory()
-            for _ in range(games_to_play):
+            for i in range(games_to_play):
+                print('Evaluation Game: ', i)
                 agent_scores = agent.simulate_intelligent(evaluating=True)
                 running_score += agent_scores[0]
                 frames_survived += agent_scores[1]
         except:
-            print('Quitting')
+            print('There was an exception!')
+            print('############ Traceback ##############')
+            print_exc()
+            print('#####################################', end='\n\n')
+            print('Quitting...')
+            break
         finally:
             running_score /= games_to_play
             frames_survived /= games_to_play

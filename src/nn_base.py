@@ -60,12 +60,12 @@ class NN(ABC):
 
     @abstractmethod
     def load_model(self):
-        print('Model loaded')
+        print('Model loaded at', datetime.now())
 
     @abstractmethod
     def save_hyperparams(self):
-        print('Saved Hyperparameters')
+        print('Saved Hyperparameters at ', datetime.now())
 
     @abstractmethod
     def load_hyperparams(self):
-        print('Hyperparameters loaded')
+        print('Hyperparameters loaded at', datetime.now())
