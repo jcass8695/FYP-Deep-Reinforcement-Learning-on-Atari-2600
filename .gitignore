@@ -4,10 +4,13 @@ __pycache__
 *.pyc
 *.h5
 *.log
-slurm-*.out
+slurm*
 src/data/*
-!src/data/recordings
+src/roms
+src/data/recordings
 report/*
 !report/*.tex
 !report/*.bib
 !report/*.pdf
+presentation/
+!presentation/presentation.pdf
