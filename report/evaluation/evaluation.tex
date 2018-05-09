@@ -6,9 +6,9 @@ given and we will close with the results of our case studies and a discussion of
 we achieve, what we do not achieve and how our observations compare to published works.
 
 \section{Objectives} \label{sec:eval_objectives}
-The primary objective of this experiment is to compare the performance of AI agents that are trained
+The primary objective of our experimentation is to compare the performance of DRL-based AI agents that are trained
 in Atari 2600 video game environments using 3 different DRL algorithms. We take a case study based
-approach on the two games introduced in Section \ref{sec:games}, Space Invaders and Breakout. The
+approach on the two games introduced in Section \ref{sec:games}; Space Invaders and Breakout. The
 algorithms we use were introduced in Section \ref{sec:algos}, DQN, 2DQN and 3DQN. We compare the
 effectiveness of these 3 algorithms using the metrics outlined in Section \ref{subsec:performance}.
 \paragraph{}
@@ -16,7 +16,7 @@ effectiveness of these 3 algorithms using the metrics outlined in Section \ref{s
 The secondary outcomes of this experimentation are twofold. Firstly, it will test the flexibility
 and stability of our system as we subject it to a range of games and algorithms. Secondly, it is our
 hope that when we compare our results to those of published works, such as
-\citet{human,doubleq,dueling}, we can achieve similar results with our more limited resources.
+(\citet{human,doubleq,dueling}), we can achieve similar results with our more limited resources.
 \paragraph{}
 
 \subsection{Performance Metrics} \label{subsec:performance}
@@ -30,7 +30,7 @@ concrete, numerical metric but we believe that it gives context to the numbers a
 more as a visual aid.
 
 \section{Experimental Setup} \label{sec:setup}
-We use Trinity's GPU cluster, Boole, to run our system. Each job submitted to Boole consists of a
+We use Boole to run our system. Each job submitted to Boole consists of a
 game-algorithm pair. This equates to 3 jobs/case study. Our system we have discussed in great detail
 in Chapter \ref{ch:design}, however we will give a brief summary of how it will operate for our case
 studies.
@@ -46,7 +46,7 @@ studies.
 	      epochs.
 \end{enumerate}
 
-Due to the constraints of time and resources discussed in Chapter \ref{ch:design}, we make the decision to scale down our hyper-parameters from the published values that we have taken inspiration from in (\citet{deepmind1,human,doubleq,dueling}). Our choice of scaling factor comes from our initial goal to train the agents for a minimum of 1 million steps. The standard in the aforementioned papers is to train for a minimum of 50 million steps, hence we scale our replay memory size and exploration rate decay $\epsilon_{decay}$ down by a factor of 50. We halve our training epoch length and target network update frequency $\tau$ to 25000 and 5000 respectively and cut the number of evaluation games from 30 to 10. A factor of 50 would be too extreme for these parameters.
+Due to the constraints of time and resources discussed in Chapter \ref{ch:design}, we make the decision to scale down our hyper-parameters from the published values that we have taken inspiration from in (\citet{deepmind1,human,doubleq,dueling}). Our choice of scaling factor comes from our initial goal to train the agents for a minimum of 1 million steps. The standard in the aforementioned papers is to train for a minimum of 50 million steps, hence we scale our replay memory size and exploration rate decay $\epsilon_{decay}$ down by a factor of 50. We halve our training epoch length and reduce the target network update frequency $\tau$ to 25000 and 5000 respectively and cut the number of evaluation games from 30 to 10. A factor of 50 would be too extreme for these parameters.
 \paragraph{}
 
 We run the system on Boole, resubmitting jobs every 2 days from check-pointed positions thanks to
@@ -265,7 +265,7 @@ The results of these are compared with the full implementation in Extended Data 
 \subsection{Comparison to Published Works}
 As mentioned above, our results are well below those of published works and seem to show little to no correlation. For our DQN algorithm, we would expect Space Invaders to be reaching a score of 800-1000 as is accomplished by the agent in (\citet{human}). Although there are no progress graphs to show the learning progress of Space Invaders or Breakout for 2DQN in (\citet{doubleq}), they do however show graphs for Wizard of Wor and Asterix. These games show definite progress in the stages that our experiments finished at in terms of training time. There are no progress graphs in (\citet{dueling}), however it is a safe assumption to make that our results are not in line with theirs, as 3DQN is an improvement on DQN and 2DQN. \paragraph{}
 
-After a thorough code review, we theorize that the problems lie with the decision we made to scale down the parameters of the experiments, not with our implementation of the system or algorithm logic. As discussed in Section \ref{sec:setup}, we down-scale several hyper-parameters from their published values to meet our requirements. \paragraph{}
+After a thorough code review where no errors were found, we theorize that the problems lie with the decision we made to scale down the parameters of the experiments, not with our implementation of the system or algorithm logic. As discussed in Section \ref{sec:setup}, we down-scale several hyper-parameters from their published values to meet our requirements. \paragraph{}
 
 We made an assumption that to facilitate our project constraints, it would be possible to shortcut the training of our agents by simply linearly scaling the scope of the original experiments. We postulate that the lost time spent exploring the environment due to the reduction of $\epsilon_{decay}$ is the cause of our agents' tendency to stay in one location, especially prevalent in the Breakout video footage. By losing out on the opportunity to take more random actions, the agent and the neural networks of our algorithms experience less states and are likely caught in a sub-optimal local minimum. If this is true, then further training after $\epsilon$ reaches $\epsilon_{min}$ would appear to be fruitless and a waste of time, as we would effectively be circling this local minimum. \paragraph{}
 
@@ -301,11 +301,11 @@ To investigate whether or not parameterization was the crux of our problem, we r
 
 We train these agents for 1 million steps each. The value of 100000 items for the replay memory capacity was found using an informal method of trial and error, whereby the job was submitted to Boole and if the capacity was too high the job would be kicked, we decrease the capacity and repeat. \paragraph{}
 
-It was found that after 40 training epochs, the agent did not appear to have improved much over the original implementation. It is clear that the hyper-parameter values chosen by DeepMind were not randomly generated, and a good deal of optimization work was performed behind the scenes. (\citet{human}) confirm this, stating that all hyper-parameters were selected by performing an informal search on the games Pong, Breakout, Seaquest, Space Invaders and Beam Rider.
+It was found that after 40 training epochs, the agents did not appear to have improved much over the original implementation. It is clear that the hyper-parameter values chosen by DeepMind were not randomly generated, and a good deal of optimization work was performed behind the scenes. (\citet{human}) confirm this, stating that all hyper-parameters were selected by performing an informal search on the games Pong, Breakout, Seaquest, Space Invaders and Beam Rider.
 
 \subsection{Further Video Footage Analysis} \label{sec:video_analysis}
 \subsubsection{Space Invaders}
-The DQN agent shows high amount of movement between the edges of the game screen. It is not immediately apparent to us \textit{why} it is doing this, there does not seem to be any strategy or reason to it. We consider it to be a result of the abnormally high average loss value discussed previously, the agent cannot determine the appropriate action to take in any given state so it's actions appear to us as random. The agent begins to show signs of dodging. If the agent is stationary and a bullet is oncoming, it may twitch slightly, but it is still sometimes too slow to react. As we will see in proceeding sections, the agent believes that shooting at all times is the best policy, and no concept of hunting is apparent. \paragraph{}
+The DQN agent shows high amount of movement between the edges of the game screen. It is not immediately apparent to us why it is doing this, there does not seem to be any strategy or reason to it. We consider it to be a result of the abnormally high average loss value discussed previously, the agent cannot determine the appropriate action to take in any given state so it's actions appear to us as random. The agent begins to show signs of dodging. If the agent is stationary and a bullet is oncoming, it may twitch slightly, but it is still sometimes too slow to react. As we will see in proceeding sections, the agent believes that shooting at all times is the best policy, and no concept of hunting is apparent. \paragraph{}
 
 The 2DQN agent is quite deflating - it shows no signs of dodging or hunting. It remains stationary in the starting position and shoots for all actions, with negligible movement. It does not show any signs of dodging enemy bullets. \paragraph{}
 

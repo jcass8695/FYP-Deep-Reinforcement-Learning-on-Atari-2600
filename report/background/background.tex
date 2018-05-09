@@ -1,5 +1,5 @@
-\chapter{Background}
-This chapter will give an introduction to the fields of ML, RL and DRL. We will mainly focus on the knowledge that is pertinent to this project. The DRL section will outline the algorithms that are used in the comparisons later in the project. We will close with a discussion on the different tools used in RL research, specifically within the video game test bed.
+\chapter{Background} \label{ch:background}
+This chapter will give an introduction to the fields of ML, RL and DRL. We will mainly focus on the knowledge that is pertinent to this project. Section \ref{sec:drl_background} will outline the algorithms that are used in the comparison experiments later in the project. We will close with a discussion on the different tools used in RL research, specifically within the video game test bed.
 
 \section{Machine Learning}
 \subsection{Introduction}
@@ -18,7 +18,7 @@ clustering of data into classes. \paragraph{}
 \subsection{Development of Machine Learning in Video Games}
 In order to claim that an AI agent achieves general competency, it should be tested in a set of
 environments that provide a suitable amount of variation, are reflective of real world problems the
-agent might encounter, and that were created by an independent party to remove experimenter's bias
+agent might encounter and that were created by an independent party to remove experimenter's bias
 (\citet{ale-eval-plat}). In this way, video games provide an effective test-bed for efficiently
 studying general AI agents as they can provide all of these requirements. Although the application
 of ML generated AI to video games may seem novel, the end goal is not to produce agents for
@@ -27,7 +27,7 @@ pressing problems to humanity, of which there are endless possibilities. \paragr
 
 The first application of notoriety to use computing to play a game arose in the research paper (\citet{programming-comp-chess}), where
 mathematician Claude Shannon developed an autonomous chess-playing system. In that paper, author
-Shannon also highlighted the point that although the application of such a solution may seem
+Shannon highlighted the point that although the application of such a solution may seem
 unimportant;
 \begin{quote}
     ``It is hoped that a satisfactory solution of this problem will act as a wedge in attacking
@@ -36,16 +36,16 @@ unimportant;
 Claude designed a strategy that, even at the time, was infeasible as it would take more than 16
 minutes to make a move. \paragraph{}
 
-Fast forward to 1997, IBM developed ``Deep Blue,'' a network of computers purpose built to play
-chess at an above-human level. It is renowned as the first AI system to defeat a world champion
+In 1997, IBM developed ``Deep Blue,'' a network of computers purpose built to play
+chess at an above-human level. It holds the accolade of the first AI system to defeat a world champion
 chess player, Garry Kasparov under normal game regulations. There is an air of controversy
 surrounding the feat, as IBM denied any chance of a replay after Kasparov claimed that IBM cheated
 by actively programming moves into Deep Blue as the game was in play. \paragraph{}
 
 In more recent times, British AI research company DeepMind published the paper (\citet{deepmind1}) in which they achieved far and above
-human-level performance on a selection of 52 Atari 2600 games with their Deep Q-Network algorithm.
+human-level performance on a selection of Atari 2600 games with their Deep Q-Network algorithm.
 DeepMind have since applied their techniques to modern, real time, strategy game StarCraft2
-(\citet{starcraft}), which we will discuss in the State of the Art chapter. 
+(\citet{starcraft}), which we will discuss in Chapter \ref{ch:soa}.
 
 \section{Reinforcement Learning}
 \subsection{Introduction}
@@ -63,7 +63,7 @@ positive or negative numerical reward. This is known as the \textit{perception-a
 
 RL is an interesting method of accomplishing ML tasks, as the agent can be given no prior
 information about it's environment or the task, and it can learn based solely on trial and error,
-reward and punishment. There are 3 main parts to a RL problem setup.
+reward and punishment. There are 3 main parts to an RL problem setup.
 
 \begin{enumerate}
     \item An agent follows a \textit{policy} $\pi$, a rule that maps a state to an action.
@@ -78,7 +78,7 @@ reward and punishment. There are 3 main parts to a RL problem setup.
           \end{align}
 \end{enumerate}
 
-Where $\gamma$ is a discount factor $[0, 1]$ and we choose $a_t = \pi(s_t)$. The objective of a RL
+Where $\gamma$ is a discount factor $[0, 1]$, which reduces the value of rewards further in time, and we choose $a_t = \pi(s_t)$. The objective of an RL
 problem is learning the optimal policy $\pi^*$, that for any given state will point the agent to the
 most favourable action so as to maximize it's cumulative reward, $V^*(s) = \max_{\pi}V(s)$. RL
 algorithms such as Q-Learning are used to find this optimal policy. \paragraph{}
@@ -87,7 +87,7 @@ algorithms such as Q-Learning are used to find this optimal policy. \paragraph{}
 In a more formal setting, it is a soft assumption that RL problems qualify as a Markov Decision
 Process (MDP) and can be modelled as such (\citet{survey-drl}). MDP's display the Markov Property; that
 the conditional probability distribution of future states is dependant only on the current state and
-totally independent of all past states. A MDP consists of:
+totally independent of all past states. An MDP consists of:
 
 \begin{itemize}
     \item A finite set of states $S$
@@ -110,8 +110,7 @@ than not that we cannot express the agent's environment with a model. Such a sce
 transition function to guide it on which action to take. Instead it must devise some other way of
 modelling it's environment, such as building a 'memory' of actions and rewards based on experiences
 and deriving an optimal policy from these experiences. The downside to this is the potentially large
-amounts of auxiliary space needed to store the experiences. This is where algorithms such as
-Q-Learning are used. \paragraph{}
+amounts of auxiliary space needed to store the experiences. \paragraph{}
 
 Q-Learning is a model free RL algorithm. At each state, the agent calculates an immediate reward,
 based solely on the current state and action taken, and the \textit{quality} of taking an action $a$
@@ -129,7 +128,7 @@ structure, hence an optimum policy can be derived by finding the optimum Q-value
 
 \begin{gather}
     \label{equ:QUpdate}
-    Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha(r_t + \gamma max_aQ(s_{t+1}, a) - Q(s_t, a_t)) \\
+    Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha(\delta) \\
     \label{equ:TDE}
     \delta = r_t + \gamma max_aQ(s_{t+1}, a) - Q(s_t, a_t)
 \end{gather}
@@ -142,10 +141,10 @@ We define $\delta$ as the Temporal Difference Error (TDE). It is an error functi
     \caption{An example Q-Matrix (\citet{qmatrix}). 0 indicates an unexplored state, action pair}
 \end{figure}
 
-The agent follows algorithm \ref{alg:QL}, detailed below.
+The agent follows Algorithm \ref{alg:QL}, detailed below.
 After a suitable number of iterations and exploration, the Q-Matrix becomes a 'map' for the agent,
 whereby it can look up the action with the highest Q-Value for any state (\citet{qlearning}).
-Q-Learning is a straight-forward, elegant solution to a RL task. However, for an environment space
+Q-Learning is a straight-forward, elegant solution to an RL task. However, for an environment space
 of high dimensionality, such as an array of RGB pixels from an image, the Q-Matrix becomes
 infeasibly large in the $S$ dimension and increasingly sparse, as only a small percentage of the
 total available state, action pairs will be visited. As a worked example, imagine a robot that is
@@ -155,7 +154,7 @@ becomes $256^{210x160x3}$ in size. A solution to the dimensionality problem was
 proposed by DeepMind, in the paper (\citet{deepmind1}) which will be discussed later in this chapter.
 
 \begin{algorithm}
-    \caption{Q-Learning Algorithm}\label{alg:QL}
+    \caption{Q-Learning Algorithm (\citet{qlearning})}\label{alg:QL}
     \begin{algorithmic}[1]
         \Procedure{Building Q-Matrix}{}
         \State Set $\alpha$ and $\gamma$ parameters.
@@ -206,24 +205,24 @@ probability of $(1-\epsilon)$. $\epsilon$ is linearly reduced at each iteration 
 predetermined floor value. This way, the agent will spend more time exploring at the start of it's
 interaction with the environment, and will then (hopefully) converge to an optimal policy as it progresses.
 
-\section{Deep Reinforcement Learning}
+\section{Deep Reinforcement Learning} \label{sec:drl_background}
 \subsection{Introduction}
-DRL refers to the use of deep learning algorithms within the field of RL. As mentioned previously, RL struggles with environments of high dimensionality. DRL overcomes this issue thanks to the universal function approximation property of deep neural networks and their abilities to isolate and recognize features of interest within high dimensional data and to compactly represent that high dimensional input data (\citet{survey-drl}). DRL can utilize a convolutional neural network to learn a representation of the environment on behalf of the agent through high dimensional sensory input such as video data. A set of fully connected layers are then generally used to approximate the target of the underlying RL algorithm, such as $V(s, a)$, $Q(s, a)$, an action etc. The deep neural network can then be trained using an appropriate variant of the backpropagation algorithm, such as stochastic or batch gradient descent. \paragraph{}
+DRL refers to the use of deep learning algorithms within the field of RL. As mentioned previously, RL struggles with environments of high dimensionality. DRL overcomes this issue thanks to the universal function approximation property of deep neural networks and their abilities to isolate and recognize features of interest within high dimensional data and to compactly represent that high dimensional input data (\citet{survey-drl}). DRL can utilize a convolutional neural network to learn a representation of the environment on behalf of the agent through high dimensional sensory input such as video data. A set of fully connected layers are then generally used to approximate the target of the underlying RL algorithm, such as $V(s, a)$, $Q(s, a)$, an action etc. The deep neural network can then be trained using an appropriate variant of the Back Propagation algorithm, such as stochastic or batch gradient descent. \paragraph{}
 
 \subsection{Deep Q-Network}
-The event that brought DRL to the attention of the research community was from the paper (\citet{deepmind1}). DeepMind created a variant of Q-Learning called Deep Q-Network, that achieved above-human level performance on a large selection of 52 Atari 2600 video games. They combined a convolutional neural network for feature detection, and a fully connected network to learn the Q-Values for all available actions, with ReLU activations within each layer. The network uses a standard Least Square Error loss function in training with gradient descent, defined as:
+The event that brought DRL to the attention of the research community was from the paper (\citet{deepmind1}). DeepMind created a variant of Q-Learning called Deep Q-Network, that achieved above-human level performance on a large selection of Atari 2600 video games. They combined a convolutional neural network for feature detection, and a fully connected network to learn the Q-Values for all available actions, with ReLU activations within each layer. The network uses a standard Least Square Error loss function in training with gradient descent, defined as:
 
 \begin{align}
     L = (y_t - Q(s, a))^2 \label{equ:DQLoss} \\
     y_t = r + \gamma max_{a}Q(s_{t+1}, a) \label{equ:DQTarget}
 \end{align}
 
-This architecture was named the Deep Q-network. This breakthrough successfully removes the dimensionality problem, as there is no need to keep a data structure storing all previous experiences. The deep neural network takes an array of RGB pixel information, taken as a stack of 3/4 (depending on the game) greyscale frames, as input to the convolutional network. The fully connected network outputs a vector of Q-Values for each available action in the game. \paragraph{}
+This architecture was named the Deep Q-Network. This breakthrough successfully removes the dimensionality problem, as there is no need to keep a large matrix storing all previous experiences. The deep neural network takes an array of RGB pixel information, taken as a stack of 4 greyscale frames, as input to the convolutional network. The fully connected network outputs a vector of Q-Values for each available action in the game. \paragraph{}
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.4]{dqn_arch}
-    \caption{A visualization of the Deep Q-network Architecture (\citet{human}).}
+    \caption{A visualization of the Deep Q-Network Architecture (\citet{human}).}
 \end{figure}
 
 \section{RL Research Tools for the Video Game Test Bed}
@@ -250,12 +249,12 @@ The OpenAI Gym is a high-level Python API that provides a suite of environments 
     \caption{Typical code snippet from OpenAI Gym Python API}
 \end{figure}
 
-The user must write their own agents to interact with the provided environments. In the above code snippet, the \texttt{env} object is one of the environments provided by the API, and the \texttt{agent} object would be written by the user, including the \texttt{act(state)} method. The \texttt{(nxt\_state, reward, done, info)} tuple is about the extent of the information about the environment that can be gathered using the API. For this reason, as will be discussed in the Design chapter, OpenAI Gym was not used in the implementation of this project. However, it remains an excellent tool for a beginner to become acquainted with RL problems.
+The user must write their own agents to interact with the provided environments. In the above code snippet, the \texttt{env} object is one of the environments provided by the API, and the \texttt{agent} object would be written by the user, including the \texttt{act(state)} method. The \texttt{(nxt\_state, reward, done, info)} tuple is the extent of the information about the environment that can be gathered using the API. For this reason, as will be discussed in the Design chapter, OpenAI Gym was not used in the implementation of this project. However, it remains an excellent tool for a beginner to become acquainted with RL problems.
 
 \subsection{The Arcade Learning Environment}
 The Arcade Learning Environment (ALE) (\citet{ale-eval-plat}) is a framework for assisting RL researchers in testing AI agents on Atari 2600 video games. It is similar to OpenAI Gym, in fact OpenAI Gym uses the ALE under the hood for it's Atari 2600 environments, however it is much more low level. It's main supported language is C++, it will provide full functionality to any agents written in C++. There is however an excellent Python interface with almost complete functionality; more than enough for the purposes of this project. For languages other than C++ or Python there is an intelligent text based mechanism using pipes called the FIFO Interface that allows \textit{any} programming language to use the ALE with a restricted set of services. \paragraph{}
 
-The ALE provides much more functionality than OpenAI Gym without being much more complex to program with. We can load a selection of 52 supported Atari 2600 ROMs to experiment with, all having different graphics, control schemes, scoring mechanisms etc. hence the ALE provides a nicely varied selection of environments against which to test AI agents. Just some of the features we can extract while an agent is running are:
+The ALE provides much more functionality than OpenAI Gym without being much more complex to program with. We can load a selection of 61 supported Atari 2600 ROMs to experiment with, all having different graphics, control schemes, scoring mechanisms etc. hence the ALE provides a nicely varied selection of environments against which to test AI agents. Just some of the features we can extract while an agent is running are:
 \begin{itemize}
     \item The current game screen as an RGB or greyscale array of pixels.
     \item The number of frames the agent has played in total and since the last game reset.

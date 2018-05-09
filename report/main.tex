@@ -130,7 +130,7 @@
 \begin{document}
 \input{title/title.tex}
 \pagenumbering{roman}
-\section*{\Huge{Declaration}}
+\chapter*{Declaration}
 \vspace{1cm}
 I hereby declare that this project is entirely my own work and that it has not been submitted as an exercise for a degree at this or any other university.
 
@@ -144,43 +144,34 @@ I have also completed the Online Tutorial on avoiding plagiarism `Ready Steady W
 
 Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
 
-\chapter*{Abstract}
-A short summary of the problem investigated, the approach taken and the key findings. This should be around 400 words, or less.
+\chapter*{Permission to Lend}
+I agree that the Library and other agents of the College may lend or copy this thesis upon
+request
+\vspace{3cm}
 
-This should be on a separate page.
+Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
+
+\chapter*{Abstract}
+Video games have become an interesting test bed for Artificial Intelligence (AI) research in recent years. Although it may seem at first far removed, there are similarities between a video game world and the real world from an AI agent's perspective. In a video game, there are objects to avoid, obstacles to traverse and rewards to collect. This can very closely model real world scenarios, such as a robot navigating a room or a self driving car. \paragraph{}
+
+This project explores the application of Deep Reinforcement Learning (DRL) algorithms in training Reinforcement Learning (RL) based AI agents to effectively play a selection of Atari 2600 video games. Our aim is to build a system that can be used to train, test and evaluate these agents using a variety of different algorithms and performance metrics. \paragraph{}
+
+Using the system we will perform case study based experiments on two different games - Breakout and Space Invaders. For each experiment we will train DRL-based AI agents using three different algorithms - Deep Q-Network (DQN), Double Deep Q-Network (2DQN) and Dueling Double Deep Q-Network (3DQN). Our objective is to examine which of these three algorithms produces more intelligent agents and analyse the reasons why.
 
 \newpage
-\onehalfspacing\raggedright %\raggedright turns off justification and hypenation
+\onehalfspacing  %\raggedright turns off justification and hypenation
 
-\section*{\Huge{Acknowledgements}}
-Thanks Mum!
+\chapter*{Acknowledgements}
+Thank you to my supervisor Vincent Wade, for his continued advice and support which proved invaluable throughout the project. Also many thanks to Jenny Walsh for arranging all of our meetings. \\
 
-You should acknowledge any help that you have received (for example from technical staff), or input provided by, for example, a company.
+Thank you to the Graziano D'Innocenzo, for the significant amount of time he gave to answering any questions I had when setting the project up on Boole. \\
+
+Lastly, thank you to my mother for her constant support through a trying 4 years.
+
 \tableofcontents
 \listoffigures
 \listoftables
 \newpage
-\section*{\Huge{Nomenclature}}
-\begin{tabular}{lp{9cm}l}
-    A        & Area of the wing                                                               & $m^{2}$ \\
-    B                                                                                                   \\
-    C        & Roman letters first, with capitals\ldots                                                 \\
-    a        & then lower case.                                                                         \\
-    b                                                                                                   \\
-    c                                                                                                   \\
-    $\Gamma$ & Followed by Greek capitals\ldots                                                         \\
-    $\alpha$ & then lower case greek symbols.                                                           \\
-    $\beta$                                                                                             \\
-    $\epsilon$                                                                                          \\
-    TLA      & Finally, three letter acronyms and other abbreviations arranged alphabetically           \\
-\end{tabular}
-\vspace{2cm}
-
-If a parameter has a typical unit that is used throughout your report, then it should be included here on the right hand side.
-
-If you have a very mathematical report, then you may wish to divide the nomenclature list into functions and variables, and then sub- and super-scripts.
-
-Note that Roman mathematical symbols are typically in a serif font in italics.
 
 \mainmatter
 \input{introduction/introduction.tex}

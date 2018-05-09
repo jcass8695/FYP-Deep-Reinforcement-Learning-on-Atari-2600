@@ -1,5 +1,5 @@
 \chapter{Conclusion}
-In Section \ref{sec:sys_overview} we outlined three design goals for our system. In Section \ref{sec:eval_objectives} we outlined three goals for our experimentation. In this chapter we will restate those objectives and discuss whether or not we feel each goal was achieved. We will close with a discussion on what we felt we have learned from this project and the potential for future works.
+In Section \ref{sec:sys_overview} we outlined three design goals for our system. In Section \ref{sec:eval_objectives} we outlined three goals for our experimentation. In this chapter we will restate those objectives and discuss whether or not we feel each goal was achieved. We will close with a discussion on what we felt we have learned from this project and the potential for future work.
 \section{Goals Revisited}
 \subsection{Design Goals}
 We stated our design goals as follows:
@@ -8,12 +8,12 @@ We stated our design goals as follows:
 	\item Aid the implementation of additional algorithms for future developers.
 	\item Provide a suite of useful research tools.
 \end{enumerate}
-It is our opinion that all of our design goals were achieved. Our system \textit{will} work with all games that the ALE supports. We have aided the implementation of future algorithms by providing the \texttt{NN} base class, explained in Section \ref{sec:sys_overview}. The system comes equipped with various tools outlined in Section \ref{sec:sys_overview} - in our own experimentation we made use of all of these features regularly.
+It is our opinion that all of our design goals were achieved. Our system will work with all games that the ALE supports. We have aided the implementation of future algorithms by providing the \texttt{NN} base class, explained in Section \ref{sec:sys_overview}. The system comes equipped with various tools outlined in Section \ref{sec:sys_overview} - in our own experimentation we made use of all of these features regularly.
 
 \subsection{Experimentation Goals}
 We stated our experimentation goals as follows:
 \begin{enumerate}
-	\item Compare the performance of AI agents trained in Atari 2600 video game environments using 3 different DRL algorithms.
+	\item Compare the performance of DRL-based AI agents trained in Atari 2600 video game environments using three state of the art DRL algorithms.
 	\item Test the flexibility and rigour of our system.
 	\item Achieve comparable results to that of published works.
 \end{enumerate}
@@ -23,14 +23,25 @@ Through our case study experiments, we have successfully compared the performanc
 
 The flexibility and stability of our system have been thoroughly tested. We have smoothly applied our implemented algorithms on two different games with no code changes. As mentioned in Section \ref{sec:setup}, the system was run for days on end, resulting in no crashes thus testifying to it's stability. \paragraph{}
 
-Finally, our third goal was to attempt to achieve similar or comparable results to that of published works in (\citet{human,doubleq,dueling}). We have deemed that we have failed in this goal, owing primarily to the constraints of time and resources. Published works have trained their networks for much longer than our own - up to 50 million frames. Thus the resolution of their results is much broader. We have plotted our results over 20-40 epochs, where we treat an epoch as 25000 weight updates, (\citet{human}) have plotted their graphs to 200 epochs, where they treat an epoch as 50000 updates. Each of the aforementioned papers publish their final results only in tabular format. Thus it is difficult and would likely prove inaccurate to draw comparisons with their final results. \paragraph{}
+Finally, our third goal was to attempt to achieve similar or comparable results to that of published works in (\citet{human,doubleq,dueling}). We have deemed that we have failed in this goal, owing primarily to the constraints of time and resources. Published works have trained their networks for much longer than our own - up to 50 million frames. Thus the resolution of their results is much broader. We have plotted our results over 40 epochs, where we treat an epoch as 25000 weight updates, (\citet{human}) have plotted their graphs to 200 epochs, where they treat an epoch as 50000 updates. Each of the aforementioned papers publish their final results only in tabular format. Thus it is difficult and would likely prove inaccurate to draw comparisons with their final results. \paragraph{}
 
 In terms of resources, we have mentioned previously in Chapter \ref{ch:design} that much of our implementation such as training time, epoch duration and replay memory size are scaled down to suit our time and resource capabilities. It is likely that these actions negatively impacted our results - however they were a necessity.
 
-\section{Learning Outcomes}
-We have learned much throughout the duration of this project. We now have a solid foundation of the theory of RL and a broad understanding and an appreciation for the relatively new field of DRL; it's landmark achievements, current state of the art and potential future endeavours. From our case study experiments, we have learned how to accurately perform a case study based experiment with proper technique, and the absolute importance of correct parameterization in DRL.
+\subsection{Project Goals}
+We stated our overall project goals as follows:
 
-\section{Future Work}
+\begin{enumerate}
+	\item Investigate the current state of the art of RL for video games.
+	\item Build a system to evaluate the performance of three state of the art DRL algorithms by collecting a series of metrics while applying each algorithm to a selection of Atari 2600 video games. 
+	\item Compare and contrast the three algorithms by performing evaluation experiments. Investigate the game scores, survival times and model losses
+\end{enumerate}
+
+As we will discuss in Section \ref{sec:learning}, we have gained a significant amount of knowledge in the foundations of RL and RL in video games through the background research. The full accomplishment of our design goals allows us to conclude that the second project goal has been fulfilled - a fully working system has been built to evaluate the performance of DRL-based AI agents in Atari 2600 video games. Finally, although the results of our experimentation were lack-lustre, we did conduct a comparison of the three algorithms; DQN, 2DQN and 3DQN and sufficiently explained our opinions as to why the results were not as expected. Overall, we feel that the project was generally successful with potential for future work, which will be discussed in Section \ref{sec:future_work}.
+
+\section{Learning Outcomes} \label{sec:learning}
+I have learned much throughout the duration of this project. I now have a solid foundation of the theory of RL and a broad understanding and an appreciation for the relatively new field of DRL; it's landmark achievements, current state of the art, potential future endeavours and the software platforms used in it's research. From the case study experiments, I have have become familiar with the experimental approach for comparative studies. Lastly, I have increased my confidence and skill in designing and implementing a project of significant scale.
+
+\section{Future Work} \label{sec:future_work}
 There are a number of avenues that a future user of our system could explore. An obvious addition would be to implement different algorithms than those chosen in our experimentation. Of particular interest to us, we would recommend DQN with a target network, for the reasons discussed in Section \ref{sec:results}, A3C and any new state of the art algorithms that appear in the future. \paragraph{}
 
 One interesting study would be to investigate potential efficiency improvements in the system. We would recommend exploring the feasibility of parallelization of the system, so that the network training could be distributed across multiple machines. This investigation would go hand-in-hand with an A3C algorithm implementation, as it is parallel by definition. This would be a worthwhile investigation, as it could aid in reducing the time constraint on network training that plagued this project throughout. It would be a significant technical undertaking, as it would require a third-party to become very familiar with a system that they are new to and did not build themselves. \paragraph{}
